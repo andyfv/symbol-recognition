@@ -8,6 +8,10 @@ import Svg exposing (mpath, svg )
 import Svg.Attributes exposing (..)
 import Browser
 import Json.Decode as Json exposing (..)
+import Element as Element exposing (rgb, fill)
+import Element.Background as Background
+import Element.Border as Border
+
 
 -- MAIN
 
@@ -65,7 +69,7 @@ modelToSvg points =
     in
         Svg.polyline
             [ Svg.Attributes.points x
-            , fill "none"
+            , Svg.Attributes.fill "none"
             , stroke polyColor
             , strokeWidth "2"
             ]
@@ -129,11 +133,6 @@ update msg model =
 view : Model -> Html Msg
 view model =
     let
-       x =
-           toFloat <| model.pointerPosition.x - round (cWidth / 2)
-
-       y =
-           toFloat <| -model.pointerPosition.y + round (cHeight / 2)
 
        mouseX =
            String.fromInt model.pointerPosition.x
@@ -147,12 +146,17 @@ view model =
        linesToDraw =
            modelToSvg model.path
    in
-        div
-        [ Html.Attributes.style "background-color" "rgb(230,230,230)"]
-        [text <|
+   Element.layout [] <|
+     Element.column
+        [ Background.color (rgb 230 230 230)
+        , Element.width fill
+        , Element.height fill
+        , Element.spacing 0
+        ]
+        [ Element.text <|
             "Number of Points : "
             ++ (String.fromInt <| List.length model.path )
-        , text <|
+        , Element.text <|
             "Current Coordinates: "
             ++ "x: "
             ++ (String.fromInt model.pointerPosition.x)
@@ -163,15 +167,16 @@ view model =
 
 
 
-drawingBox : Svg.Attribute Msg -> String -> String -> Svg.Svg Msg -> Html Msg
+drawingBox : Svg.Attribute Msg -> String -> String -> Svg.Svg Msg -> Element.Element Msg
 drawingBox vBox mouseX mouseY linesToDraw =
-    svg
+    Element.html <| Svg.svg
         [ vBox
         , Svg.Attributes.width <| String.fromInt cWidth ++ "px"
         , Svg.Attributes.width <| String.fromInt cHeight ++ "px"
         , Html.Attributes.style "border" "1px solid black"
         , Html.Attributes.style "border-radius" "5px"
-        , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
+--        , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
+        , Html.Events.stopPropagationOn "mousemove" offsetPosition
         , Html.Events.onMouseDown DrawStart
         , Html.Events.onMouseUp DrawEnd
         ]
@@ -179,8 +184,39 @@ drawingBox vBox mouseX mouseY linesToDraw =
 
 
 
-offsetPosition : Json.Decoder Position
+offsetPosition : Json.Decoder (Msg, Bool)
 offsetPosition =
     map2 Position
         (field "offsetX" int)
         (field "offsetY" int)
+    |> Json.map UpdatePointerPosition
+    |> Json.map (\msg -> (msg, True))
+
+
+--eventConfig : Bool -> Bool -> msg -> {message: Decoder Msg , stopPropagation : Bool, preventDefault : Bool}
+--eventConfig stopPropagation preventDefault msg =
+--    { message = options
+--    , stopPropagation = stopPropagation
+--    , preventDefault = preventDefault
+--    }
+
+
+--options = Json.map UpdatePointerPosition offsetPosition
+
+--decoder = Json.map UpdatePointerPosition offsetPosition
+
+--mouseMoveDecoder : Position -> Json.Decoder (Msg, Bool)
+--mouseMoveDecoder pos =
+--     let
+--         options message =
+--             { message = message
+--             , stopPropagation = True
+--             , preventDefault = False
+--             }
+--
+--         decoder =
+--             offsetPosition
+--     in
+--     Html.Events.custom "mousemove" decoder
+--
+--
