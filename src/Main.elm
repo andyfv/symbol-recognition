@@ -113,15 +113,18 @@ update msg model =
                         pathNew = (xPos, yPos) :: pathSoFar
                     in
                     ({ model | pointerPosition = pos
-                    , path = pathNew
-                    }, Cmd.none)
+                     , path = pathNew
+                     }, Cmd.none)
 
                 False ->
                     ({model | pointerPosition = pos }, Cmd.none)
 
 
         DrawStart ->
-            ({ model | currentlyDrawing = True }, Cmd.none)
+            ({ model | currentlyDrawing = True
+             , path = []
+             }
+             , Cmd.none)
 
         DrawEnd ->
             ({ model | currentlyDrawing = False }, Cmd.none)
@@ -159,12 +162,24 @@ view model =
         , Element.text <|
             "Current Coordinates: "
             ++ "x: "
-            ++ (String.fromInt model.pointerPosition.x)
+            ++ mouseX
             ++ "y: "
-            ++ (String.fromInt model.pointerPosition.y)
+            ++ mouseY
         , drawingBox vBox mouseX mouseY linesToDraw
+--        , mouseCircle mouseX mouseY
         ]
 
+
+mouseCircle : String -> String -> Element.Element msg
+mouseCircle mouseX mouseY =
+    Element.html <|
+        Svg.circle
+            [ cx mouseX
+            , cy mouseY
+            , r "10"
+            , Svg.Attributes.fill "#0B79CE"
+            ]
+            []
 
 
 drawingBox : Svg.Attribute Msg -> String -> String -> Svg.Svg Msg -> Element.Element Msg
@@ -180,7 +195,16 @@ drawingBox vBox mouseX mouseY linesToDraw =
         , Html.Events.onMouseDown DrawStart
         , Html.Events.onMouseUp DrawEnd
         ]
-        [linesToDraw]
+        [ Svg.circle
+            [ cx mouseX
+            , cy mouseY
+            , r "10"
+            , Svg.Attributes.fill "#0B79CE"
+            , Svg.Attributes.opacity "0.4"
+            ]
+            []
+         ,linesToDraw
+        ]
 
 
 

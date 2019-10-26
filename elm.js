@@ -4867,7 +4867,7 @@ var author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{currentlyDrawing: true}),
+						{currentlyDrawing: true, path: _List_Nil}),
 					elm$core$Platform$Cmd$none);
 			default:
 				return _Utils_Tuple2(
@@ -4953,7 +4953,13 @@ var elm$html$Html$Events$stopPropagationOn = F2(
 			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
 	});
 var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
 var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
+var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
+var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
+var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
 var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var elm$core$Basics$always = F2(
 	function (a, _n0) {
@@ -4988,7 +4994,20 @@ var author$project$Main$drawingBox = F4(
 						elm$html$Html$Events$onMouseUp(author$project$Main$DrawEnd)
 					]),
 				_List_fromArray(
-					[linesToDraw])));
+					[
+						A2(
+						elm$svg$Svg$circle,
+						_List_fromArray(
+							[
+								elm$svg$Svg$Attributes$cx(mouseX),
+								elm$svg$Svg$Attributes$cy(mouseY),
+								elm$svg$Svg$Attributes$r('10'),
+								elm$svg$Svg$Attributes$fill('#0B79CE'),
+								elm$svg$Svg$Attributes$opacity('0.4')
+							]),
+						_List_Nil),
+						linesToDraw
+					])));
 	});
 var elm$core$String$fromFloat = _String_fromNumber;
 var elm$core$Tuple$second = function (_n0) {
@@ -5070,7 +5089,6 @@ var elm$core$List$map = F2(
 			xs);
 	});
 var elm$svg$Svg$polyline = elm$svg$Svg$trustedNode('polyline');
-var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
 var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
@@ -11006,8 +11024,7 @@ var author$project$Main$view = function (model) {
 					mdgriffith$elm_ui$Element$text(
 					'Number of Points : ' + elm$core$String$fromInt(
 						elm$core$List$length(model.path))),
-					mdgriffith$elm_ui$Element$text(
-					'Current Coordinates: ' + ('x: ' + (elm$core$String$fromInt(model.pointerPosition.x) + ('y: ' + elm$core$String$fromInt(model.pointerPosition.y))))),
+					mdgriffith$elm_ui$Element$text('Current Coordinates: ' + ('x: ' + (mouseX + ('y: ' + mouseY)))),
 					A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, linesToDraw)
 				])));
 };
