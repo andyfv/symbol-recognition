@@ -4954,13 +4954,17 @@ var elm$html$Html$Events$stopPropagationOn = F2(
 	});
 var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
+var elm$svg$Svg$rect = elm$svg$Svg$trustedNode('rect');
 var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
 var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
 var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
 var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
+var elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
 var elm$core$Basics$always = F2(
 	function (a, _n0) {
 		return a;
@@ -4987,7 +4991,7 @@ var author$project$Main$drawingBox = F4(
 						elm$core$String$fromInt(author$project$Main$cWidth) + 'px'),
 						elm$svg$Svg$Attributes$width(
 						elm$core$String$fromInt(author$project$Main$cHeight) + 'px'),
-						A2(elm$html$Html$Attributes$style, 'border', '1px solid black'),
+						A2(elm$html$Html$Attributes$style, 'border', '5px solid grey'),
 						A2(elm$html$Html$Attributes$style, 'border-radius', '5px'),
 						A2(elm$html$Html$Events$stopPropagationOn, 'mousemove', author$project$Main$offsetPosition),
 						elm$html$Html$Events$onMouseDown(author$project$Main$DrawStart),
@@ -4996,14 +5000,27 @@ var author$project$Main$drawingBox = F4(
 				_List_fromArray(
 					[
 						A2(
+						elm$svg$Svg$rect,
+						_List_fromArray(
+							[
+								elm$svg$Svg$Attributes$width(
+								elm$core$String$fromInt(author$project$Main$cWidth)),
+								elm$svg$Svg$Attributes$height(
+								elm$core$String$fromInt(author$project$Main$cHeight)),
+								elm$svg$Svg$Attributes$fill('#fdf6e3'),
+								elm$svg$Svg$Attributes$x('0'),
+								elm$svg$Svg$Attributes$y('0')
+							]),
+						_List_Nil),
+						A2(
 						elm$svg$Svg$circle,
 						_List_fromArray(
 							[
 								elm$svg$Svg$Attributes$cx(mouseX),
 								elm$svg$Svg$Attributes$cy(mouseY),
-								elm$svg$Svg$Attributes$r('10'),
-								elm$svg$Svg$Attributes$fill('#0B79CE'),
-								elm$svg$Svg$Attributes$opacity('0.4')
+								elm$svg$Svg$Attributes$r('8'),
+								elm$svg$Svg$Attributes$fill('#fd635e'),
+								elm$svg$Svg$Attributes$opacity('0.7')
 							]),
 						_List_Nil),
 						linesToDraw
@@ -5092,12 +5109,12 @@ var elm$svg$Svg$polyline = elm$svg$Svg$trustedNode('polyline');
 var elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
 var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
-var author$project$Main$modelToSvg = function (points) {
+var author$project$Main$pathToSvg = function (points) {
 	var x = A2(
 		elm$core$String$join,
 		' ',
 		A2(elm$core$List$map, author$project$Main$pointToString, points));
-	var polyColor = 'red';
+	var polyColor = 'grey';
 	return A2(
 		elm$svg$Svg$polyline,
 		_List_fromArray(
@@ -11005,7 +11022,7 @@ var author$project$Main$view = function (model) {
 		'0 0 ' + (elm$core$String$fromFloat(author$project$Main$cWidth) + (' ' + elm$core$String$fromFloat(author$project$Main$cHeight))));
 	var mouseY = elm$core$String$fromInt(model.pointerPosition.y);
 	var mouseX = elm$core$String$fromInt(model.pointerPosition.x);
-	var linesToDraw = author$project$Main$modelToSvg(model.path);
+	var linesToDraw = author$project$Main$pathToSvg(model.path);
 	return A2(
 		mdgriffith$elm_ui$Element$layout,
 		_List_Nil,
@@ -11014,7 +11031,7 @@ var author$project$Main$view = function (model) {
 			_List_fromArray(
 				[
 					mdgriffith$elm_ui$Element$Background$color(
-					A3(mdgriffith$elm_ui$Element$rgb, 230, 230, 230)),
+					A3(mdgriffith$elm_ui$Element$rgb, 253, 246, 227)),
 					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
 					mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$fill),
 					mdgriffith$elm_ui$Element$spacing(0)

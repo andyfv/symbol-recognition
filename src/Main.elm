@@ -1,19 +1,21 @@
 module Main exposing (main)
 
-import Html exposing (Html, text, div)
-import Html.Attributes exposing (..)
-import Html.Events exposing (on, onMouseDown, onMouseUp, custom)
-import String exposing (fromInt)
-import Svg exposing (mpath, svg )
-import Svg.Attributes exposing (..)
 import Browser
-import Json.Decode as Json exposing (..)
-import Element as Element exposing (rgb, fill)
+import Element as Element exposing (fill, rgb)
 import Element.Background as Background
 import Element.Border as Border
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (..)
+import Html.Events exposing (custom, on, onMouseDown, onMouseUp)
+import Json.Decode as Json exposing (..)
+import String exposing (fromInt)
+import Svg exposing (mpath, svg)
+import Svg.Attributes exposing (..)
+
 
 
 -- MAIN
+
 
 main : Program () Model Msg
 main =
@@ -24,8 +26,15 @@ main =
         , subscriptions = \model -> Sub.none
         }
 
-cWidth = 500
-cHeight = 500
+
+cWidth =
+    500
+
+
+cHeight =
+    500
+
+
 
 -- MODEL
 
@@ -37,7 +46,7 @@ type alias Model =
     }
 
 
-initialModel : () -> (Model, Cmd Msg)
+initialModel : () -> ( Model, Cmd Msg )
 initialModel _ =
     ( { path = []
       , currentlyDrawing = False
@@ -46,10 +55,10 @@ initialModel _ =
     , Cmd.none
     )
 
+
 type alias Point =
-    ( Float
-    , Float
-    )
+    ( Float, Float )
+
 
 type alias Position =
     { x : Int
@@ -57,26 +66,7 @@ type alias Position =
     }
 
 
-modelToSvg : List Point -> Svg.Svg msg
-modelToSvg points =
-    let
-        x =
-            List.map pointToString points
-            |> String.join " "
-
-        polyColor =
-            "red"
-    in
-        Svg.polyline
-            [ Svg.Attributes.points x
-            , Svg.Attributes.fill "none"
-            , stroke polyColor
-            , strokeWidth "2"
-            ]
-            []
-
-
-pointToString : (Float, Float) -> String
+pointToString : ( Float, Float ) -> String
 pointToString point =
     let
         x =
@@ -84,11 +74,13 @@ pointToString point =
 
         y =
             String.fromFloat <| Tuple.second point
-
     in
     x ++ "," ++ y
 
+
+
 -- UPDATE
+
 
 type MouseState
     = Up
@@ -101,120 +93,150 @@ type Msg
     | UpdatePointerPosition Position
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UpdatePointerPosition pos ->
             case model.currentlyDrawing of
                 True ->
-                    let pathSoFar = model.path
-                        xPos = toFloat pos.x
-                        yPos = toFloat pos.y
-                        pathNew = (xPos, yPos) :: pathSoFar
+                    let
+                        pathSoFar =
+                            model.path
+
+                        xPos =
+                            toFloat pos.x
+
+                        yPos =
+                            toFloat pos.y
+
+                        pathNew =
+                            ( xPos, yPos ) :: pathSoFar
                     in
-                    ({ model | pointerPosition = pos
-                     , path = pathNew
-                     }, Cmd.none)
+                    ( { model
+                        | pointerPosition = pos
+                        , path = pathNew
+                      }
+                    , Cmd.none
+                    )
 
                 False ->
-                    ({model | pointerPosition = pos }, Cmd.none)
-
+                    ( { model | pointerPosition = pos }, Cmd.none )
 
         DrawStart ->
-            ({ model | currentlyDrawing = True
-             , path = []
-             }
-             , Cmd.none)
+            ( { model
+                | currentlyDrawing = True
+                , path = []
+              }
+            , Cmd.none
+            )
 
         DrawEnd ->
-            ({ model | currentlyDrawing = False }, Cmd.none)
+            ( { model | currentlyDrawing = False }, Cmd.none )
 
 
 
 -- VIEW
 
+
 view : Model -> Html Msg
 view model =
     let
+        mouseX =
+            String.fromInt model.pointerPosition.x
 
-       mouseX =
-           String.fromInt model.pointerPosition.x
+        mouseY =
+            String.fromInt model.pointerPosition.y
 
-       mouseY =
-           String.fromInt model.pointerPosition.y
+        vBox =
+            viewBox <| "0 0 " ++ String.fromFloat cWidth ++ " " ++ String.fromFloat cHeight
 
-       vBox =
-           viewBox <| "0 0 " ++ String.fromFloat cWidth ++ " " ++ String.fromFloat cHeight
-
-       linesToDraw =
-           modelToSvg model.path
-   in
-   Element.layout [] <|
-     Element.column
-        [ Background.color (rgb 230 230 230)
-        , Element.width fill
-        , Element.height fill
-        , Element.spacing 0
-        ]
-        [ Element.text <|
-            "Number of Points : "
-            ++ (String.fromInt <| List.length model.path )
-        , Element.text <|
-            "Current Coordinates: "
-            ++ "x: "
-            ++ mouseX
-            ++ "y: "
-            ++ mouseY
-        , drawingBox vBox mouseX mouseY linesToDraw
---        , mouseCircle mouseX mouseY
-        ]
-
-
-mouseCircle : String -> String -> Element.Element msg
-mouseCircle mouseX mouseY =
-    Element.html <|
-        Svg.circle
-            [ cx mouseX
-            , cy mouseY
-            , r "10"
-            , Svg.Attributes.fill "#0B79CE"
+        linesToDraw =
+            pathToSvg model.path
+    in
+    Element.layout [] <|
+        Element.column
+            [ Background.color (rgb 253 246 227)
+            , Element.width fill
+            , Element.height fill
+            , Element.spacing 0
             ]
-            []
+            [ Element.text <|
+                "Number of Points : "
+                    ++ (String.fromInt <| List.length model.path)
+            , Element.text <|
+                "Current Coordinates: "
+                    ++ "x: "
+                    ++ mouseX
+                    ++ "y: "
+                    ++ mouseY
+            , drawingBox vBox mouseX mouseY linesToDraw
+
+            --        , mouseCircle mouseX mouseY
+            ]
+
+
+pathToSvg : List Point -> Svg.Svg msg
+pathToSvg points =
+    let
+        x =
+            List.map pointToString points
+                |> String.join " "
+
+        polyColor =
+            "grey"
+    in
+    Svg.polyline
+        [ Svg.Attributes.points x
+        , Svg.Attributes.fill "none"
+        , stroke polyColor
+        , strokeWidth "2"
+        ]
+        []
 
 
 drawingBox : Svg.Attribute Msg -> String -> String -> Svg.Svg Msg -> Element.Element Msg
 drawingBox vBox mouseX mouseY linesToDraw =
-    Element.html <| Svg.svg
-        [ vBox
-        , Svg.Attributes.width <| String.fromInt cWidth ++ "px"
-        , Svg.Attributes.width <| String.fromInt cHeight ++ "px"
-        , Html.Attributes.style "border" "1px solid black"
-        , Html.Attributes.style "border-radius" "5px"
---        , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
-        , Html.Events.stopPropagationOn "mousemove" offsetPosition
-        , Html.Events.onMouseDown DrawStart
-        , Html.Events.onMouseUp DrawEnd
-        ]
-        [ Svg.circle
-            [ cx mouseX
-            , cy mouseY
-            , r "10"
-            , Svg.Attributes.fill "#0B79CE"
-            , Svg.Attributes.opacity "0.4"
+    Element.html <|
+        Svg.svg
+            [ vBox
+            , Svg.Attributes.width <| String.fromInt cWidth ++ "px"
+            , Svg.Attributes.width <| String.fromInt cHeight ++ "px"
+            , Html.Attributes.style "border" "5px solid grey"
+            , Html.Attributes.style "border-radius" "5px"
+
+            --        , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
+            , Html.Events.stopPropagationOn "mousemove" offsetPosition
+            , Html.Events.onMouseDown DrawStart
+            , Html.Events.onMouseUp DrawEnd
             ]
-            []
-         ,linesToDraw
-        ]
+            [ Svg.rect
+                [ Svg.Attributes.width <| String.fromInt cWidth
+                , Svg.Attributes.height <| String.fromInt cHeight
+                , Svg.Attributes.fill "#fdf6e3"
+                , Svg.Attributes.x "0"
+                , Svg.Attributes.y "0"
+                ]
+                []
+            , Svg.circle
+                [ cx mouseX
+                , cy mouseY
+                , r "8"
+                , Svg.Attributes.fill "#fd635e"
+                , Svg.Attributes.opacity "0.7"
+                ]
+                []
+            , linesToDraw
+            ]
 
 
-
-offsetPosition : Json.Decoder (Msg, Bool)
+offsetPosition : Json.Decoder ( Msg, Bool )
 offsetPosition =
     map2 Position
         (field "offsetX" int)
         (field "offsetY" int)
-    |> Json.map UpdatePointerPosition
-    |> Json.map (\msg -> (msg, True))
+        |> Json.map UpdatePointerPosition
+        |> Json.map (\msg -> ( msg, True ))
+
 
 
 --eventConfig : Bool -> Bool -> msg -> {message: Decoder Msg , stopPropagation : Bool, preventDefault : Bool}
@@ -223,12 +245,8 @@ offsetPosition =
 --    , stopPropagation = stopPropagation
 --    , preventDefault = preventDefault
 --    }
-
-
 --options = Json.map UpdatePointerPosition offsetPosition
-
 --decoder = Json.map UpdatePointerPosition offsetPosition
-
 --mouseMoveDecoder : Position -> Json.Decoder (Msg, Bool)
 --mouseMoveDecoder pos =
 --     let
