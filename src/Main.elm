@@ -1,5 +1,6 @@
-module Main exposing (main)
+module Main exposing (main, Point)
 
+import Array exposing (fromList)
 import Browser
 import Element as Element exposing (fill, rgb)
 import Element.Background as Background
@@ -11,6 +12,7 @@ import Json.Decode as Json exposing (..)
 import String exposing (fromInt)
 import Svg exposing (mpath, svg)
 import Svg.Attributes exposing (..)
+
 
 
 
@@ -41,23 +43,31 @@ cHeight =
 
 type alias Model =
     { path : List Point
+    , smoothedPath : List Point
+    , thinnedPath : List Point
+    , curvedPath : List Point
     , currentlyDrawing : Bool
     , pointerPosition : Position
+    , smoothingFactor : Float
     }
 
 
 initialModel : () -> ( Model, Cmd Msg )
 initialModel _ =
     ( { path = []
+      , smoothedPath = []
+      , thinnedPath = []
+      , curvedPath = []
       , currentlyDrawing = False
       , pointerPosition = Position 0 0
+      , smoothingFactor = 0.75
       }
     , Cmd.none
     )
 
 
 type alias Point =
-    ( Float, Float )
+    ( Int, Int )
 
 
 type alias Position =
@@ -66,25 +76,20 @@ type alias Position =
     }
 
 
-pointToString : ( Float, Float ) -> String
+pointToString : ( Int, Int ) -> String
 pointToString point =
     let
         x =
-            String.fromFloat <| Tuple.first point
+            String.fromInt <| Tuple.first point
 
         y =
-            String.fromFloat <| Tuple.second point
+            String.fromInt <| Tuple.second point
     in
     x ++ "," ++ y
 
 
 
 -- UPDATE
-
-
-type MouseState
-    = Up
-    | Down
 
 
 type Msg
@@ -103,18 +108,22 @@ update msg model =
                         pathSoFar =
                             model.path
 
-                        xPos =
-                            toFloat pos.x
-
-                        yPos =
-                            toFloat pos.y
+                        newPoint = (pos.x , pos.y)
 
                         pathNew =
-                            ( xPos, yPos ) :: pathSoFar
+                            newPoint :: pathSoFar
+
+                        smoothPath = smoothing
+                                        pathNew
+                                        model.smoothedPath
+                                        newPoint
+                                        model.smoothingFactor
+
                     in
                     ( { model
                         | pointerPosition = pos
                         , path = pathNew
+                        , smoothedPath = smoothPath
                       }
                     , Cmd.none
                     )
@@ -126,6 +135,7 @@ update msg model =
             ( { model
                 | currentlyDrawing = True
                 , path = []
+                , smoothedPath = []
               }
             , Cmd.none
             )
@@ -133,6 +143,42 @@ update msg model =
         DrawEnd ->
             ( { model | currentlyDrawing = False }, Cmd.none )
 
+
+smoothing : List Point -> List Point -> Point -> Float -> List Point
+smoothing rawList smoothedList newPoint sf =
+    if (List.length smoothedList > 1 ) then
+        let
+            -- 1. Take the last raw point
+            -- 2. Take the last smoothed point
+            lastRawPoint = fromMaybe <| List.head rawList
+            previousSmoothedPoint = fromMaybe <| List.head smoothedList
+
+            -- 3. Decode the lastRawPoint Point tuple to:
+            --     xRi, yRi - coordinates of the i-th raw point
+            (xRi, yRi) = Tuple.mapBoth toFloat toFloat lastRawPoint
+
+            -- 4. Destruct the previousSmoothedPoint tuple to:
+            --     ySi, ySi - coordinates of the (i-1) smoothed point
+            (xSi_sub_1, ySi_sub_1 ) = Tuple.mapBoth toFloat toFloat previousSmoothedPoint
+
+            -- 5. Calculate next smoothed point
+            xSi = (sf * xSi_sub_1) + (( 1 - sf ) * xRi )
+            ySi = (sf * ySi_sub_1) + (( 1 - sf ) * yRi )
+        in
+            -- 6. Add the last smoothed point to the smoothedList
+            (Tuple.mapBoth round round (xSi, ySi)) :: smoothedList
+
+    else
+        -- 1. If  smoothedList is empty
+        newPoint :: smoothedList
+
+
+
+fromMaybe : Maybe Point -> Point
+fromMaybe x =
+    case x of
+        Just y -> y
+        Nothing -> (0, 0)
 
 
 -- VIEW
@@ -152,12 +198,14 @@ view model =
 
         linesToDraw =
             pathToSvg model.path
+
+        smoothedLines = pathToSvg model.smoothedPath
     in
     Element.layout [] <|
         Element.column
             [ Background.color (rgb 253 246 227)
-            , Element.width fill
-            , Element.height fill
+            , Element.width Element.fill
+            , Element.height Element.fill
             , Element.spacing 0
             ]
             [ Element.text <|
@@ -170,7 +218,7 @@ view model =
                     ++ "y: "
                     ++ mouseY
             , drawingBox vBox mouseX mouseY linesToDraw
-
+            , drawingBox vBox mouseX mouseY smoothedLines
             --        , mouseCircle mouseX mouseY
             ]
 
@@ -203,7 +251,6 @@ drawingBox vBox mouseX mouseY linesToDraw =
             , Svg.Attributes.width <| String.fromInt cHeight ++ "px"
             , Html.Attributes.style "border" "5px solid grey"
             , Html.Attributes.style "border-radius" "5px"
-
             --        , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
             , Html.Events.stopPropagationOn "mousemove" offsetPosition
             , Html.Events.onMouseDown DrawStart
@@ -220,7 +267,7 @@ drawingBox vBox mouseX mouseY linesToDraw =
             , Svg.circle
                 [ cx mouseX
                 , cy mouseY
-                , r "8"
+                , r "10"
                 , Svg.Attributes.fill "#fd635e"
                 , Svg.Attributes.opacity "0.7"
                 ]
