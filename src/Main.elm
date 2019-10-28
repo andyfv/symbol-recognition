@@ -1,4 +1,4 @@
-module Main exposing (main, Point)
+module Main exposing (Point, main)
 
 import Array exposing (fromList)
 import Browser
@@ -12,7 +12,6 @@ import Json.Decode as Json exposing (..)
 import String exposing (fromInt)
 import Svg exposing (mpath, svg)
 import Svg.Attributes exposing (..)
-
 
 
 
@@ -49,6 +48,7 @@ type alias Model =
     , currentlyDrawing : Bool
     , pointerPosition : Position
     , smoothingFactor : Float
+    , thinningFactor : Int
     }
 
 
@@ -61,6 +61,7 @@ initialModel _ =
       , currentlyDrawing = False
       , pointerPosition = Position 0 0
       , smoothingFactor = 0.75
+      , thinningFactor = 10
       }
     , Cmd.none
     )
@@ -108,22 +109,32 @@ update msg model =
                         pathSoFar =
                             model.path
 
-                        newPoint = (pos.x , pos.y)
+                        newPoint =
+                            ( pos.x, pos.y )
 
                         pathNew =
                             newPoint :: pathSoFar
 
-                        smoothPath = smoothing
-                                        pathNew
-                                        model.smoothedPath
-                                        newPoint
-                                        model.smoothingFactor
+                        smoothPath =
+                            smoothing
+                                pathNew
+                                model.smoothedPath
+                                model.smoothingFactor
+                                newPoint
+
+                        thinnedPath =
+                            thinning
+                                smoothPath
+                                model.thinnedPath
+                                model.thinningFactor
+
 
                     in
                     ( { model
                         | pointerPosition = pos
                         , path = pathNew
                         , smoothedPath = smoothPath
+                        , thinnedPath = thinnedPath
                       }
                     , Cmd.none
                     )
@@ -136,6 +147,7 @@ update msg model =
                 | currentlyDrawing = True
                 , path = []
                 , smoothedPath = []
+                , thinnedPath = []
               }
             , Cmd.none
             )
@@ -144,41 +156,75 @@ update msg model =
             ( { model | currentlyDrawing = False }, Cmd.none )
 
 
-smoothing : List Point -> List Point -> Point -> Float -> List Point
-smoothing rawList smoothedList newPoint sf =
-    if (List.length smoothedList > 1 ) then
+smoothing : List Point -> List Point -> Float -> Point -> List Point
+smoothing rawList smoothedList sf newPoint =
+    if List.length smoothedList > 1 then
         let
             -- 1. Take the last raw point
             -- 2. Take the last smoothed point
-            lastRawPoint = fromMaybe <| List.head rawList
-            previousSmoothedPoint = fromMaybe <| List.head smoothedList
+            lastRawPoint =
+                fromMaybe <| List.head rawList
+
+            previousSmoothedPoint =
+                fromMaybe <| List.head smoothedList
 
             -- 3. Decode the lastRawPoint Point tuple to:
             --     xRi, yRi - coordinates of the i-th raw point
-            (xRi, yRi) = Tuple.mapBoth toFloat toFloat lastRawPoint
+            ( xRi, yRi ) =
+                Tuple.mapBoth toFloat toFloat lastRawPoint
 
             -- 4. Destruct the previousSmoothedPoint tuple to:
             --     ySi, ySi - coordinates of the (i-1) smoothed point
-            (xSi_sub_1, ySi_sub_1 ) = Tuple.mapBoth toFloat toFloat previousSmoothedPoint
+            ( xSi_sub_1, ySi_sub_1 ) =
+                Tuple.mapBoth toFloat toFloat previousSmoothedPoint
 
             -- 5. Calculate next smoothed point
-            xSi = (sf * xSi_sub_1) + (( 1 - sf ) * xRi )
-            ySi = (sf * ySi_sub_1) + (( 1 - sf ) * yRi )
+            xSi =
+                (sf * xSi_sub_1) + ((1 - sf) * xRi)
+
+            ySi =
+                (sf * ySi_sub_1) + ((1 - sf) * yRi)
         in
-            -- 6. Add the last smoothed point to the smoothedList
-            (Tuple.mapBoth round round (xSi, ySi)) :: smoothedList
+        -- 6. Add the last smoothed point to the smoothedList
+        Tuple.mapBoth round round ( xSi, ySi ) :: smoothedList
 
     else
         -- 1. If  smoothedList is empty
         newPoint :: smoothedList
 
 
-
 fromMaybe : Maybe Point -> Point
 fromMaybe x =
     case x of
-        Just y -> y
-        Nothing -> (0, 0)
+        Just y ->
+            y
+
+        Nothing ->
+            ( 0, 0 )
+
+
+thinning : List Point -> List Point -> Int -> List Point
+thinning smoothedPath thinnedPath tf =
+    if (List.length thinnedPath > 1) then
+        let
+            ( xSi, ySi ) =
+                fromMaybe <| List.head smoothedPath
+
+            ( xTj_sub_1, yTj_sub_1 ) =
+                fromMaybe <| List.head thinnedPath
+
+        in
+        if ((abs (xSi - xTj_sub_1)) >= tf)
+           || ((abs (ySi - yTj_sub_1)) >= tf)
+        then
+            ( xSi, ySi ) :: thinnedPath
+
+        else
+            thinnedPath
+
+    else
+        (fromMaybe <| List.head smoothedPath) :: thinnedPath
+
 
 
 -- VIEW
@@ -199,7 +245,12 @@ view model =
         linesToDraw =
             pathToSvg model.path
 
-        smoothedLines = pathToSvg model.smoothedPath
+        smoothedLines =
+            pathToSvg model.smoothedPath
+
+        thinnedLines =
+            pathToSvg model.thinnedPath
+
     in
     Element.layout [] <|
         Element.column
@@ -219,6 +270,7 @@ view model =
                     ++ mouseY
             , drawingBox vBox mouseX mouseY linesToDraw
             , drawingBox vBox mouseX mouseY smoothedLines
+            , drawingBox vBox mouseX mouseY thinnedLines
             --        , mouseCircle mouseX mouseY
             ]
 
@@ -237,7 +289,7 @@ pathToSvg points =
         [ Svg.Attributes.points x
         , Svg.Attributes.fill "none"
         , stroke polyColor
-        , strokeWidth "2"
+        , strokeWidth "3"
         ]
         []
 
@@ -251,6 +303,7 @@ drawingBox vBox mouseX mouseY linesToDraw =
             , Svg.Attributes.width <| String.fromInt cHeight ++ "px"
             , Html.Attributes.style "border" "5px solid grey"
             , Html.Attributes.style "border-radius" "5px"
+
             --        , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
             , Html.Events.stopPropagationOn "mousemove" offsetPosition
             , Html.Events.onMouseDown DrawStart
