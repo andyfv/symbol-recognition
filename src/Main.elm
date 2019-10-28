@@ -189,7 +189,7 @@ smoothing rawList smoothedList sf newPoint =
         Tuple.mapBoth round round ( xSi, ySi ) :: smoothedList
 
     else
-        -- 1. If  smoothedList is empty
+        -- If  smoothedList is empty
         newPoint :: smoothedList
 
 
@@ -207,22 +207,29 @@ thinning : List Point -> List Point -> Int -> List Point
 thinning smoothedPath thinnedPath tf =
     if (List.length thinnedPath > 1) then
         let
+            -- 1. Take last smoothed Point
             ( xSi, ySi ) =
                 fromMaybe <| List.head smoothedPath
-
+            -- 2. Take last thinned Point
             ( xTj_sub_1, yTj_sub_1 ) =
                 fromMaybe <| List.head thinnedPath
 
         in
+        -- 3. Calculate if the difference between last smoothed
+        -- and last thinned is larger than the thinningFactor (tf)
         if ((abs (xSi - xTj_sub_1)) >= tf)
            || ((abs (ySi - yTj_sub_1)) >= tf)
         then
+            -- 4. if the difference is larger add the last smoothed Point to
+            -- thinnedPath
             ( xSi, ySi ) :: thinnedPath
 
         else
+            -- 5. if the difference is NOT larger return the old thinnedPath List
             thinnedPath
 
     else
+        -- if thinnedPath is empty
         (fromMaybe <| List.head smoothedPath) :: thinnedPath
 
 
