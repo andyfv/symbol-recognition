@@ -1,7 +1,8 @@
-module Main exposing (Point, main)
+module Main exposing (main)
 
 import Array exposing (fromList)
 import Browser
+import DataManipulation exposing (..)
 import Element as Element exposing (fill, rgb)
 import Element.Background as Background
 import Element.Border as Border
@@ -28,12 +29,10 @@ main =
         }
 
 
-cWidth =
-    500
-
-
-cHeight =
-    500
+canvasSize =
+    { width = 300
+    , height = 400
+    }
 
 
 
@@ -65,10 +64,6 @@ initialModel _ =
       }
     , Cmd.none
     )
-
-
-type alias Point =
-    ( Int, Int )
 
 
 type alias Position =
@@ -127,8 +122,6 @@ update msg model =
                                 smoothPath
                                 model.thinnedPath
                                 model.thinningFactor
-
-
                     in
                     ( { model
                         | pointerPosition = pos
@@ -156,83 +149,6 @@ update msg model =
             ( { model | currentlyDrawing = False }, Cmd.none )
 
 
-smoothing : List Point -> List Point -> Float -> Point -> List Point
-smoothing rawList smoothedList sf newPoint =
-    if List.length smoothedList > 1 then
-        let
-            -- 1. Take the last raw point
-            -- 2. Take the last smoothed point
-            lastRawPoint =
-                fromMaybe <| List.head rawList
-
-            previousSmoothedPoint =
-                fromMaybe <| List.head smoothedList
-
-            -- 3. Decode the lastRawPoint Point tuple to:
-            --     xRi, yRi - coordinates of the i-th raw point
-            ( xRi, yRi ) =
-                Tuple.mapBoth toFloat toFloat lastRawPoint
-
-            -- 4. Destruct the previousSmoothedPoint tuple to:
-            --     ySi, ySi - coordinates of the (i-1) smoothed point
-            ( xSi_sub_1, ySi_sub_1 ) =
-                Tuple.mapBoth toFloat toFloat previousSmoothedPoint
-
-            -- 5. Calculate next smoothed point
-            xSi =
-                (sf * xSi_sub_1) + ((1 - sf) * xRi)
-
-            ySi =
-                (sf * ySi_sub_1) + ((1 - sf) * yRi)
-        in
-        -- 6. Add the last smoothed point to the smoothedList
-        Tuple.mapBoth round round ( xSi, ySi ) :: smoothedList
-
-    else
-        -- If  smoothedList is empty
-        newPoint :: smoothedList
-
-
-fromMaybe : Maybe Point -> Point
-fromMaybe x =
-    case x of
-        Just y ->
-            y
-
-        Nothing ->
-            ( 0, 0 )
-
-
-thinning : List Point -> List Point -> Int -> List Point
-thinning smoothedPath thinnedPath tf =
-    if (List.length thinnedPath > 1) then
-        let
-            -- 1. Take last smoothed Point
-            ( xSi, ySi ) =
-                fromMaybe <| List.head smoothedPath
-            -- 2. Take last thinned Point
-            ( xTj_sub_1, yTj_sub_1 ) =
-                fromMaybe <| List.head thinnedPath
-
-        in
-        -- 3. Calculate if the difference between last smoothed
-        -- and last thinned is larger than the thinningFactor (tf)
-        if ((abs (xSi - xTj_sub_1)) >= tf)
-           || ((abs (ySi - yTj_sub_1)) >= tf)
-        then
-            -- 4. if the difference is larger add the last smoothed Point to
-            -- thinnedPath
-            ( xSi, ySi ) :: thinnedPath
-
-        else
-            -- 5. if the difference is NOT larger return the old thinnedPath List
-            thinnedPath
-
-    else
-        -- if thinnedPath is empty
-        (fromMaybe <| List.head smoothedPath) :: thinnedPath
-
-
 
 -- VIEW
 
@@ -247,7 +163,11 @@ view model =
             String.fromInt model.pointerPosition.y
 
         vBox =
-            viewBox <| "0 0 " ++ String.fromFloat cWidth ++ " " ++ String.fromFloat cHeight
+            viewBox <|
+                "0 0 "
+                    ++ String.fromFloat canvasSize.width
+                    ++ " "
+                    ++ String.fromFloat canvasSize.height
 
         linesToDraw =
             pathToSvg model.path
@@ -257,7 +177,6 @@ view model =
 
         thinnedLines =
             pathToSvg model.thinnedPath
-
     in
     Element.layout [] <|
         Element.column
@@ -275,9 +194,11 @@ view model =
                     ++ mouseX
                     ++ "y: "
                     ++ mouseY
-            , drawingBox vBox mouseX mouseY linesToDraw
+            , Element.row []
+            [ drawingBox vBox mouseX mouseY linesToDraw
             , drawingBox vBox mouseX mouseY smoothedLines
             , drawingBox vBox mouseX mouseY thinnedLines
+            ]
             --        , mouseCircle mouseX mouseY
             ]
 
@@ -306,19 +227,19 @@ drawingBox vBox mouseX mouseY linesToDraw =
     Element.html <|
         Svg.svg
             [ vBox
-            , Svg.Attributes.width <| String.fromInt cWidth ++ "px"
-            , Svg.Attributes.width <| String.fromInt cHeight ++ "px"
+            , Svg.Attributes.width <| String.fromInt canvasSize.width ++ "px"
+            , Svg.Attributes.height <| String.fromInt canvasSize.height ++ "px"
             , Html.Attributes.style "border" "5px solid grey"
             , Html.Attributes.style "border-radius" "5px"
 
-            --        , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
+            -- , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
             , Html.Events.stopPropagationOn "mousemove" offsetPosition
             , Html.Events.onMouseDown DrawStart
             , Html.Events.onMouseUp DrawEnd
             ]
             [ Svg.rect
-                [ Svg.Attributes.width <| String.fromInt cWidth
-                , Svg.Attributes.height <| String.fromInt cHeight
+                [ Svg.Attributes.width <| String.fromInt canvasSize.width
+                , Svg.Attributes.height <| String.fromInt canvasSize.height
                 , Svg.Attributes.fill "#fdf6e3"
                 , Svg.Attributes.x "0"
                 , Svg.Attributes.y "0"
