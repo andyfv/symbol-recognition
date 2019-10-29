@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Array exposing (fromList)
+import Array exposing (Array, fromList)
 import Browser
 import DataManipulation exposing (..)
 import Element as Element exposing (fill, rgb)
@@ -40,10 +40,10 @@ canvasSize =
 
 
 type alias Model =
-    { path : List Point
-    , smoothedPath : List Point
-    , thinnedPath : List Point
-    , curvedPath : List Point
+    { path : Array Point
+    , smoothedPath : Array Point
+    , thinnedPath : Array Point
+    , curvePath : Array Direction
     , currentlyDrawing : Bool
     , pointerPosition : Position
     , smoothingFactor : Float
@@ -53,10 +53,10 @@ type alias Model =
 
 initialModel : () -> ( Model, Cmd Msg )
 initialModel _ =
-    ( { path = []
-      , smoothedPath = []
-      , thinnedPath = []
-      , curvedPath = []
+    ( { path = Array.empty
+      , smoothedPath = Array.empty
+      , thinnedPath = Array.empty
+      , curvePath = Array.empty
       , currentlyDrawing = False
       , pointerPosition = Position 0 0
       , smoothingFactor = 0.75
@@ -101,33 +101,37 @@ update msg model =
             case model.currentlyDrawing of
                 True ->
                     let
-                        pathSoFar =
+                        rawPointsSoFar =
                             model.path
 
                         newPoint =
                             ( pos.x, pos.y )
 
-                        pathNew =
-                            newPoint :: pathSoFar
+                        rawPointsNew =
+                            Array.push newPoint rawPointsSoFar
 
-                        smoothPath =
+                        smoothedPath =
                             smoothing
-                                pathNew
+                                rawPointsNew
                                 model.smoothedPath
                                 model.smoothingFactor
                                 newPoint
 
                         thinnedPath =
                             thinning
-                                smoothPath
+                                smoothedPath
                                 model.thinnedPath
                                 model.thinningFactor
+
+                        curvaturePath =
+                            curvature thinnedPath model.curvePath
                     in
                     ( { model
                         | pointerPosition = pos
-                        , path = pathNew
-                        , smoothedPath = smoothPath
+                        , path = rawPointsNew
+                        , smoothedPath = smoothedPath
                         , thinnedPath = thinnedPath
+                        , curvePath = curvaturePath
                       }
                     , Cmd.none
                     )
@@ -138,9 +142,10 @@ update msg model =
         DrawStart ->
             ( { model
                 | currentlyDrawing = True
-                , path = []
-                , smoothedPath = []
-                , thinnedPath = []
+                , path = Array.empty
+                , smoothedPath = Array.empty
+                , thinnedPath = Array.empty
+                , curvePath = Array.empty
               }
             , Cmd.none
             )
@@ -178,36 +183,40 @@ view model =
         thinnedLines =
             pathToSvg model.thinnedPath
     in
-    Element.layout [] <|
-        Element.column
-            [ Background.color (rgb 253 246 227)
-            , Element.width Element.fill
-            , Element.height Element.fill
-            , Element.spacing 0
-            ]
-            [ Element.text <|
-                "Number of Points : "
-                    ++ (String.fromInt <| List.length model.path)
-            , Element.text <|
-                "Current Coordinates: "
-                    ++ "x: "
-                    ++ mouseX
-                    ++ "y: "
-                    ++ mouseY
-            , Element.row []
-            [ drawingBox vBox mouseX mouseY linesToDraw
-            , drawingBox vBox mouseX mouseY smoothedLines
-            , drawingBox vBox mouseX mouseY thinnedLines
-            ]
-            --        , mouseCircle mouseX mouseY
-            ]
+    Debug.log (Debug.toString model.curvePath) <|
+        Element.layout
+            []
+        <|
+            Element.column
+                [ Background.color (rgb 253 246 227)
+                , Element.width Element.fill
+                , Element.height Element.fill
+                , Element.spacing 0
+                ]
+                [ Element.text <|
+                    "Number of Points : "
+                        ++ (String.fromInt <| Array.length model.path)
+                , Element.text <|
+                    "Current Coordinates: "
+                        ++ "x: "
+                        ++ mouseX
+                        ++ "y: "
+                        ++ mouseY
+                , Element.row []
+                    [ drawingBox vBox mouseX mouseY linesToDraw
+                    , drawingBox vBox mouseX mouseY smoothedLines
+                    , drawingBox vBox mouseX mouseY thinnedLines
+                    ]
+
+                --        , mouseCircle mouseX mouseY
+                ]
 
 
-pathToSvg : List Point -> Svg.Svg msg
+pathToSvg : Array Point -> Svg.Svg msg
 pathToSvg points =
     let
         x =
-            List.map pointToString points
+            List.map pointToString (Array.toList points)
                 |> String.join " "
 
         polyColor =
