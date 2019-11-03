@@ -172,7 +172,7 @@ convertFromCartesianToPolar ( xTj, yTj ) ( xTj_sub_1, yTj_sub_1 ) =
         theta_degree =
             -- Since atan2 returns negative values for III and IV quadrant
             -- just add 2*pi if the return value is negative
-            -- to convert it to full '0 - 360' polar system
+            -- to convert it to '0 - 360' polar system
             if theta_rad < 0 then
                 theta_rad +  (2 * pi)
 
@@ -232,17 +232,35 @@ detectCorners thinnedPoints cornersPoints cornerThreshold =
             angleBetweenVec3Vec4 = getAngleBetweenTwoVectors vec3 vec4
             angleBetweenVec1Vec3 = getAngleBetweenTwoVectors vec1 vec3
 
+
         in
-            if
-            angleBetweenVec1Vec2 <= degrees 45
+            if angleBetweenVec1Vec2 <= degrees 45
             && angleBetweenVec3Vec4 <= degrees 45
             && angleBetweenVec1Vec3 <= degrees cornerThreshold
+            && (checkForDuplicate cornersPoints xyTj_sub_2) == False
             then
                 Array.push xyTj_sub_2 cornersPoints
             else  cornersPoints
 
     else
         cornersPoints
+
+checkForDuplicate: Array Point -> Point -> Bool
+checkForDuplicate cornerPoints newCorner =
+    let numberOfCorners = Array.length cornerPoints in
+        if numberOfCorners == 0 then
+            False
+        else
+            let
+                lastCorner = getPointReversed cornerPoints numberOfCorners 0
+            in
+                if lastCorner /= newCorner
+                then False
+                else True
+
+
+
+
 
 getVector : Point -> Point -> (Float, Float)
 getVector ( xTj, yTj ) ( xTj_sub_1, yTj_sub_1 ) =
@@ -266,10 +284,8 @@ getAngleBetweenTwoVectors (xA, yA) (xB, yB) =
 
         vectorMagnitudeA = sqrt ((xA^2) + (yA^2))
         vectorMagnitudeB = sqrt ((xB^2) + (yB^2))
-
-        angle = acos (dotProduct / (vectorMagnitudeA * vectorMagnitudeB))
     in
-        angle
+        acos (dotProduct / (vectorMagnitudeA * vectorMagnitudeB))
 
 
 
