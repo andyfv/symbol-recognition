@@ -44,10 +44,12 @@ type alias Model =
     , smoothedPath : Array Point
     , thinnedPath : Array Point
     , curvePath : Array Direction
+    , corners : Array Point
     , currentlyDrawing : Bool
     , pointerPosition : Position
     , smoothingFactor : Float
     , thinningFactor : Int
+    , cornerThreshold : Float
     }
 
 
@@ -57,10 +59,12 @@ initialModel _ =
       , smoothedPath = Array.empty
       , thinnedPath = Array.empty
       , curvePath = Array.empty
+      , corners = Array.empty
       , currentlyDrawing = False
       , pointerPosition = Position 0 0
       , smoothingFactor = 0.75
-      , thinningFactor = 10
+      , thinningFactor = 3
+      , cornerThreshold = 110
       }
     , Cmd.none
     )
@@ -125,6 +129,14 @@ update msg model =
 
                         curvaturePath =
                             curvature thinnedPath model.curvePath
+
+                        corners =
+                            detectCorners
+                            thinnedPath
+                            model.corners
+                            model.cornerThreshold
+
+
                     in
                     ( { model
                         | pointerPosition = pos
@@ -132,6 +144,7 @@ update msg model =
                         , smoothedPath = smoothedPath
                         , thinnedPath = thinnedPath
                         , curvePath = curvaturePath
+                        , corners = corners
                       }
                     , Cmd.none
                     )
@@ -146,6 +159,7 @@ update msg model =
                 , smoothedPath = Array.empty
                 , thinnedPath = Array.empty
                 , curvePath = Array.empty
+                , corners = Array.empty
               }
             , Cmd.none
             )
@@ -183,7 +197,9 @@ view model =
         thinnedLines =
             pathToSvg model.thinnedPath
     in
-    Debug.log (Debug.toString model.curvePath) <|
+    Debug.log (Debug.toString model.corners)
+--    Debug.log (Debug.toString model.curvePath)
+    <|
         Element.layout
             []
         <|
