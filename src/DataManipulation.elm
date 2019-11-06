@@ -117,21 +117,19 @@ thinning smoothedPoints thinnedPoints tf =
 
 -- Curvature
 curvature : Array Point -> Array Direction -> Array Direction
-curvature thinnedPath curvePath =
+curvature thinnedPath directionPath =
     let
-        numberOfThinnedPoints =
-            Array.length thinnedPath
+        numberOfThinnedPoints = Array.length thinnedPath
+        numberOfDirections = Array.length directionPath
     in
-    if numberOfThinnedPoints >= 2 then
+    if numberOfThinnedPoints >= 2
+    && numberOfDirections < 8 then
         let
             xy_Tj =
-                fromMaybe <| Array.get (numberOfThinnedPoints - 1) thinnedPath
+                fromMaybePoint <| Array.get (numberOfThinnedPoints - 1) thinnedPath
 
             xy_Tj_sub_1 =
-                fromMaybe <| Array.get (numberOfThinnedPoints - 2) thinnedPath
-
-            numberOfDirections =
-                Array.length curvePath
+                fromMaybePoint <| Array.get (numberOfThinnedPoints - 2) thinnedPath
 
             deg =
                 convertFromCartesianToPolar xy_Tj xy_Tj_sub_1
@@ -139,22 +137,22 @@ curvature thinnedPath curvePath =
             direction =
                 convertFromPolarToDirection deg
         in
-        if Array.isEmpty curvePath then
-            Array.push direction curvePath
+        if Array.isEmpty directionPath then
+            Array.push direction directionPath
 
         else
             let
                 lastDirection =
-                    fromMaybeDirection <| Array.get (numberOfDirections - 1) curvePath
+                    fromMaybeDirection <| Array.get (numberOfDirections - 1) directionPath
             in
             if lastDirection == direction then
-                curvePath
+                directionPath
 
             else
-                Array.push direction curvePath
+                Array.push direction directionPath
 
     else
-        curvePath
+        directionPath
 
 
 convertFromCartesianToPolar : Point -> Point -> Float
