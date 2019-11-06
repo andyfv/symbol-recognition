@@ -1,4 +1,4 @@
-module DataManipulation exposing (Direction, Point, curvature, fromMaybe, smoothing, thinning, detectCorners)
+module DataManipulation exposing (Symbol , recognizeSymbol ,Direction, Point, curvature, fromMaybePoint, smoothing, thinning, detectCorners, getStartAndEndPosition)
 
 -- Types
 
@@ -17,6 +17,30 @@ type Direction
     | UNKNOWN
 
 
+type alias Extremes =
+    { top : Float
+    , bottom : Float
+    , left : Float
+    , right : Float
+    , width : Float
+    , height : Float
+    }
+
+type alias Symbol =
+    { directions : Array Direction
+    , corners : Array Point
+    , startQuadrant : Quadrant
+    , endQuadrant : Quadrant
+    }
+
+-- Quadrants are the same as in Cartesian coord system
+type Quadrant
+    = I
+    | II
+    | III
+    | IV
+
+
 
 -- Manipulations
 
@@ -33,14 +57,14 @@ smoothing rawPoints smoothedPoints sf newPoint =
             -- 1. Take the last raw point
             -- 2. Take the last smoothed point
             lastRawPoint =
-                fromMaybe <| Array.get (Array.length rawPoints - 1) rawPoints
+                fromMaybePoint <| Array.get (Array.length rawPoints - 1) rawPoints
 
             previousSmoothedPoint =
                 if numberOfSmoothedPoints == 1 then
-                    fromMaybe <| Array.get 0 smoothedPoints
+                    fromMaybePoint <| Array.get 0 smoothedPoints
 
                 else
-                    fromMaybe <| Array.get (numberOfSmoothedPoints - 1) smoothedPoints
+                    fromMaybePoint <| Array.get (numberOfSmoothedPoints - 1) smoothedPoints
 
             -- 3. Destruct the lastRawPoint Point:
             --     xRi, yRi - coordinates of the i-th raw point
@@ -81,13 +105,13 @@ thinning smoothedPoints thinnedPoints tf =
         let
             -- 1. Take last smoothed Point
             ( xSi, ySi ) =
-                fromMaybe <|
+                fromMaybePoint <|
                     Array.get (numberOfSmoothedPoints - 1)
                         smoothedPoints
 
             -- 2. Take last thinned Point
             ( xTj_sub_1, yTj_sub_1 ) =
-                fromMaybe <|
+                fromMaybePoint <|
                     Array.get (numberOfThinnedPoints - 1)
                         thinnedPoints
         in
@@ -108,7 +132,7 @@ thinning smoothedPoints thinnedPoints tf =
     else
         -- if thinnedPath is empty
         Array.push
-            (fromMaybe <|
+            (fromMaybePoint <|
                 Array.get (numberOfSmoothedPoints - 1)
                     smoothedPoints
             )
@@ -286,15 +310,107 @@ getAngleBetweenTwoVectors (xA, yA) (xB, yB) =
         acos (dotProduct / (vectorMagnitudeA * vectorMagnitudeB))
 
 
-
 getPointReversed : Array Point -> Int -> Int -> Point
 getPointReversed array arrayLength position =
-    fromMaybe
+    fromMaybePoint
     <| Array.get ((arrayLength - 1) - position) array
 
 
-fromMaybe : Maybe Point -> Point
-fromMaybe x =
+
+-- Get Start and End Positions (startPosition, EndPosition)
+getStartAndEndPosition : Array Point -> (Quadrant, Quadrant)
+getStartAndEndPosition thinnedInput =
+    let
+        startingPositon = fromMaybePoint <|  Array.get 0 thinnedInput
+        endingPositon = fromMaybePoint <| Array.get (Array.length thinnedInput - 1) thinnedInput
+
+        listThinnedInput = toList thinnedInput
+        listX = List.map (\(x,_) -> x) listThinnedInput
+        listY = List.map (\(_,y) -> y) listThinnedInput
+
+        left = fromMaybeNumber <| List.minimum listX
+        right = fromMaybeNumber <| List.maximum listX
+        top = fromMaybeNumber <| List.minimum listY
+        bottom = fromMaybeNumber <| List.maximum listY
+
+        width = right - left
+        height = bottom - top
+
+        extremes : Extremes
+        extremes =
+            { top = toFloat top
+            , bottom =toFloat bottom
+            , left = toFloat left
+            , right = toFloat right
+            , width = toFloat width
+            , height = toFloat height
+            }
+
+        startPointQuadrant = getPositionQuadrant startingPositon extremes
+        endPointQuadrant = getPositionQuadrant endingPositon extremes
+    in
+        (startPointQuadrant, endPointQuadrant)
+
+
+getPositionQuadrant : Point -> Extremes -> Quadrant
+getPositionQuadrant (x, y) extremes =
+    let
+        halfWidth = extremes.width / 2
+        halfHeight = extremes.height / 2
+    in
+        if y <= floor (extremes.bottom - halfHeight)
+        && x <=  floor (extremes.right - halfWidth)
+            then II
+
+        else if x < floor (extremes.right -  halfWidth)
+        && y > floor (extremes.bottom - halfHeight)
+            then III
+
+        else if x >= floor (extremes.right - halfWidth)
+        && y >= floor (extremes.bottom - halfHeight)
+            then IV
+    --
+    --    else x > (extremes.right - (extremes.width / 2))
+    --    && y < (extremes.bottom - (extremes.height / 2))
+        else
+            I
+
+
+
+fromMaybeNumber : Maybe number -> number
+fromMaybeNumber number =
+    case number of
+        Just y ->
+            y
+        Nothing ->
+            0
+
+
+recognizeSymbol : Symbol -> String
+recognizeSymbol symbol =
+    let
+        firstDirection = fromMaybeDirection <| Array.get 0 symbol.directions
+    in
+        case firstDirection of
+            DOWN ->
+                "I"
+
+            UP ->
+                "U"
+
+            LEFT ->
+                "L"
+
+            RIGHT ->
+                "R"
+
+            UNKNOWN ->
+                "Unknown"
+
+
+
+fromMaybePoint : Maybe Point -> Point
+fromMaybePoint x =
     case x of
         Just y ->
             y
