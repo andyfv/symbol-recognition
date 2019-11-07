@@ -3,6 +3,7 @@ module Main exposing (main)
 import Array exposing (Array, fromList)
 import Browser
 import DataManipulation exposing (..)
+import Types exposing (..)
 import Element as Element exposing (fill, rgb)
 import Element.Background as Background
 import Element.Border as Border
@@ -52,6 +53,7 @@ type alias Model =
     , cornerThreshold : Float
     , startingCoordinates : Point
     , endingCoordinates : Point
+    , recognizedSymbol : String
     }
 
 
@@ -69,6 +71,7 @@ initialModel _ =
       , cornerThreshold = 110
       , startingCoordinates = (0, 0)
       , endingCoordinates = (0, 0)
+      , recognizedSymbol = ""
       }
     , Cmd.none
     )
@@ -97,8 +100,8 @@ pointToString point =
 
 
 type Msg
-    = DrawStart Position
-    | DrawEnd Position
+    = DrawStart
+    | DrawEnd
     | UpdatePointerPosition Position
 
 
@@ -156,7 +159,7 @@ update msg model =
                 False ->
                     ( { model | pointerPosition = pos }, Cmd.none )
 
-        DrawStart pos ->
+        DrawStart ->
             ( { model
                 | currentlyDrawing = True
                 , path = Array.empty
@@ -164,15 +167,27 @@ update msg model =
                 , thinnedPath = Array.empty
                 , curvePath = Array.empty
                 , corners = Array.empty
-                , startingCoordinates = (pos.x , pos.y)
               }
             , Cmd.none
             )
 
-        DrawEnd pos ->
+        DrawEnd ->
+            let
+                (startQuadrant, endQuadrant) = getStartAndEndPosition model.thinnedPath
+
+                symbol : Symbol
+                symbol =
+                    { directions = model.curvePath
+                    , corners = model.corners
+                    , startQuadrant = startQuadrant
+                    , endQuadrant = endQuadrant
+                    }
+
+                recognizedSymbol = recognizeSymbol symbol
+            in
             ( { model
                 | currentlyDrawing = False
-                , endingCoordinates = (pos.x, pos.y)
+                , recognizedSymbol = recognizedSymbol
                 }
             , Cmd.none )
 
@@ -206,11 +221,12 @@ view model =
         thinnedLines =
             pathToSvg model.thinnedPath
     in
-      Debug.log ("startCoord: " ++ Debug.toString model.startingCoordinates)
-      Debug.log ("endCoord: " ++ Debug.toString model.endingCoordinates)
+--    Debug.log (model.recognizedSymbol)
+--      Debug.log ("startCoord: " ++ Debug.toString model.startingCoordinates)
+--      Debug.log ("endCoord: " ++ Debug.toString model.endingCoordinates)
 --    Debug.log (Debug.toString model.corners)
 --    Debug.log (Debug.toString model.curvePath)
-    <|
+--    <|
         Element.layout
             []
         <|
@@ -269,11 +285,11 @@ drawingBox vBox mouseX mouseY linesToDraw =
             , Html.Attributes.style "border-radius" "5px"
 
             -- , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
-            -- , Html.Events.onMouseDown DrawStart offsetPosition
-            -- , Html.Events.onMouseUp DrawEnd
+            -- , Html.Events.on "mousedown" (Json.map DrawStart mouseCoord)
+            -- , Html.Events.on "mouseup" (Json.map DrawEnd mouseCoord)
+            , Html.Events.onMouseDown DrawStart
+            , Html.Events.onMouseUp DrawEnd
             , Html.Events.stopPropagationOn "mousemove" offsetPosition
-            , Html.Events.on "mousedown" (Json.map DrawStart mouseCoord)
-            , Html.Events.on "mouseup" (Json.map DrawEnd mouseCoord)
             ]
             [ Svg.rect
                 [ Svg.Attributes.width <| String.fromInt canvasSize.width

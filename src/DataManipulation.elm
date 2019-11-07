@@ -1,45 +1,10 @@
-module DataManipulation exposing (Symbol , recognizeSymbol ,Direction, Point, curvature, fromMaybePoint, smoothing, thinning, detectCorners, getStartAndEndPosition)
+module DataManipulation exposing (recognizeSymbol , curvature, fromMaybePoint, smoothing, thinning, detectCorners, getStartAndEndPosition)
 
 -- Types
 
 import Array exposing (..)
-
-
-type alias Point =
-    ( Int, Int )
-
-
-type Direction
-    = UP
-    | DOWN
-    | LEFT
-    | RIGHT
-    | UNKNOWN
-
-
-type alias Extremes =
-    { top : Float
-    , bottom : Float
-    , left : Float
-    , right : Float
-    , width : Float
-    , height : Float
-    }
-
-type alias Symbol =
-    { directions : Array Direction
-    , corners : Array Point
-    , startQuadrant : Quadrant
-    , endQuadrant : Quadrant
-    }
-
--- Quadrants are the same as in Cartesian coord system
-type Quadrant
-    = I
-    | II
-    | III
-    | IV
-
+--import Symbols exposing (..)
+import Types exposing (..)
 
 
 -- Manipulations
@@ -393,7 +358,7 @@ recognizeSymbol symbol =
     in
         case firstDirection of
             DOWN ->
-                "I"
+                "D"
 
             UP ->
                 "U"
@@ -406,6 +371,8 @@ recognizeSymbol symbol =
 
             UNKNOWN ->
                 "Unknown"
+
+
 
 
 
