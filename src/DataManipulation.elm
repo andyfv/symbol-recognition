@@ -104,21 +104,27 @@ thinning smoothedPoints thinnedPoints tf =
             thinnedPoints
 
 
--- Curvature
-curvature : Array Point -> Array Direction -> Array Direction
-curvature thinnedPath directionPath =
+-- Directions
+-- Note: This also returns UNKNOWN if the direction is in the hysteresis zones
+getDirection : Array Point -> Array Direction -> Array Direction
+getDirection thinnedPath directionPath =
     let
         numberOfThinnedPoints = Array.length thinnedPath
         numberOfDirections = Array.length directionPath
-    in
-    if numberOfThinnedPoints >= 2
-    && numberOfDirections < 8 then
-        let
-            xy_Tj =
-                fromMaybePoint <| Array.get (numberOfThinnedPoints - 1) thinnedPath
 
-            xy_Tj_sub_1 =
-                fromMaybePoint <| Array.get (numberOfThinnedPoints - 2) thinnedPath
+        xy_Tj =
+            fromMaybePoint <| Array.get (numberOfThinnedPoints - 1) thinnedPath
+
+        xy_Tj_sub_1 =
+            fromMaybePoint <| Array.get (numberOfThinnedPoints - 2) thinnedPath
+
+        deg = convertFromCartesianToPolar xy_Tj xy_Tj_sub_1
+        direction = convertFromPolarToDirection deg
+    in
+
+    if numberOfThinnedPoints >= 2
+    && numberOfDirections < 8
+    && direction /= UNKNOWN then
 
             deg =
                 convertFromCartesianToPolar xy_Tj xy_Tj_sub_1
