@@ -138,7 +138,26 @@ recognizeSymbolUp symbol =
             [UP, DOWN] ->
                 "1"
 
-            []
+            [UP, DOWN, UP] ->   -- TODO: check of either "A" or "N"
+                "A"
+
+            [UP, DOWN, UP, DOWN] ->
+                "M"
+
+            [UP, RIGHT, DOWN, LEFT, RIGHT, DOWN, LEFT] ->   -- TODO: Check "3" or "B"
+                "B"
+
+            [UP, RIGHT, DOWN, LEFT] ->
+                "P"
+
+            [UP, RIGHT, DOWN, LEFT, RIGHT, DOWN] ->
+                "R"
+
+            [UP, LEFT, DOWN, RIGHT] ->
+                "C"
+
+            [UP, RIGHT, DOWN, LEFT, UP] ->
+                "2"
 
             _ ->
                 "Unknown"

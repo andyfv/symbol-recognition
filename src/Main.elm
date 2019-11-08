@@ -250,7 +250,7 @@ view model =
                     , drawingBox vBox mouseX mouseY smoothedLines
                     , drawingBox vBox mouseX mouseY thinnedLines
                     ]
-
+                , Element.text model.recognizedSymbol
                 --        , mouseCircle mouseX mouseY
                 ]
 
