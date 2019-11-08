@@ -3,7 +3,6 @@ module Main exposing (main)
 import Array exposing (Array, fromList)
 import Browser
 import DataManipulation exposing (..)
-import Types exposing (..)
 import Element as Element exposing (fill, rgb)
 import Element.Background as Background
 import Element.Border as Border
@@ -14,6 +13,7 @@ import Json.Decode as Json exposing (..)
 import String exposing (fromInt)
 import Svg exposing (mpath, svg)
 import Svg.Attributes exposing (..)
+import Types exposing (..)
 
 
 
@@ -69,8 +69,8 @@ initialModel _ =
       , smoothingFactor = 0.75
       , thinningFactor = 3
       , cornerThreshold = 110
-      , startingCoordinates = (0, 0)
-      , endingCoordinates = (0, 0)
+      , startingCoordinates = ( 0, 0 )
+      , endingCoordinates = ( 0, 0 )
       , recognizedSymbol = ""
       }
     , Cmd.none
@@ -139,11 +139,9 @@ update msg model =
 
                         corners =
                             detectCorners
-                            thinnedPath
-                            model.corners
-                            model.cornerThreshold
-
-
+                                thinnedPath
+                                model.corners
+                                model.cornerThreshold
                     in
                     ( { model
                         | pointerPosition = pos
@@ -173,7 +171,8 @@ update msg model =
 
         DrawEnd ->
             let
-                (startQuadrant, endQuadrant) = getStartAndEndPosition model.thinnedPath
+                ( startQuadrant, endQuadrant ) =
+                    getStartAndEndPosition model.thinnedPath
 
                 symbol : Symbol
                 symbol =
@@ -183,13 +182,15 @@ update msg model =
                     , endQuadrant = endQuadrant
                     }
 
-                recognizedSymbol = recognizeSymbol symbol
+                recognizedSymbol =
+                    recognizeSymbol symbol
             in
             ( { model
                 | currentlyDrawing = False
                 , recognizedSymbol = recognizedSymbol
-                }
-            , Cmd.none )
+              }
+            , Cmd.none
+            )
 
 
 
@@ -221,38 +222,40 @@ view model =
         thinnedLines =
             pathToSvg model.thinnedPath
     in
-    Debug.log (model.recognizedSymbol)
---      Debug.log ("startCoord: " ++ Debug.toString model.startingCoordinates)
---      Debug.log ("endCoord: " ++ Debug.toString model.endingCoordinates)
---    Debug.log (Debug.toString model.corners)
-    Debug.log (Debug.toString model.curvePath)
---    <|
+    Debug.log model.recognizedSymbol
+        --      Debug.log ("startCoord: " ++ Debug.toString model.startingCoordinates)
+        --      Debug.log ("endCoord: " ++ Debug.toString model.endingCoordinates)
+        --    Debug.log (Debug.toString model.corners)
+        Debug.log
+        (Debug.toString model.curvePath)
+        --    <|
         Element.layout
-            []
-        <|
-            Element.column
-                [ Background.color (rgb 253 246 227)
-                , Element.width Element.fill
-                , Element.height Element.fill
-                , Element.spacing 0
+        []
+    <|
+        Element.column
+            [ Background.color (rgb 253 246 227)
+            , Element.width Element.fill
+            , Element.height Element.fill
+            , Element.spacing 0
+            ]
+            [ Element.text <|
+                "Number of Points : "
+                    ++ (String.fromInt <| Array.length model.path)
+            , Element.text <|
+                "Current Coordinates: "
+                    ++ "x: "
+                    ++ mouseX
+                    ++ "y: "
+                    ++ mouseY
+            , Element.row []
+                [ drawingBox vBox mouseX mouseY linesToDraw
+                , drawingBox vBox mouseX mouseY smoothedLines
+                , drawingBox vBox mouseX mouseY thinnedLines
                 ]
-                [ Element.text <|
-                    "Number of Points : "
-                        ++ (String.fromInt <| Array.length model.path)
-                , Element.text <|
-                    "Current Coordinates: "
-                        ++ "x: "
-                        ++ mouseX
-                        ++ "y: "
-                        ++ mouseY
-                , Element.row []
-                    [ drawingBox vBox mouseX mouseY linesToDraw
-                    , drawingBox vBox mouseX mouseY smoothedLines
-                    , drawingBox vBox mouseX mouseY thinnedLines
-                    ]
-                , Element.text model.recognizedSymbol
-                --        , mouseCircle mouseX mouseY
-                ]
+            , Element.text model.recognizedSymbol
+
+            --        , mouseCircle mouseX mouseY
+            ]
 
 
 pathToSvg : Array Point -> Svg.Svg msg
@@ -318,13 +321,11 @@ offsetPosition =
         |> Json.map (\msg -> ( msg, True ))
 
 
-mouseCoord :  Decoder Position
+mouseCoord : Decoder Position
 mouseCoord =
     map2 Position
         (field "offsetX" int)
         (field "offsetY" int)
-
-
 
 
 

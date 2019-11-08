@@ -2314,6 +2314,43 @@ function _Platform_mergeExportsDebug(moduleName, obj, exports)
 
 
 
+var _Bitwise_and = F2(function(a, b)
+{
+	return a & b;
+});
+
+var _Bitwise_or = F2(function(a, b)
+{
+	return a | b;
+});
+
+var _Bitwise_xor = F2(function(a, b)
+{
+	return a ^ b;
+});
+
+function _Bitwise_complement(a)
+{
+	return ~a;
+};
+
+var _Bitwise_shiftLeftBy = F2(function(offset, a)
+{
+	return a << offset;
+});
+
+var _Bitwise_shiftRightBy = F2(function(offset, a)
+{
+	return a >> offset;
+});
+
+var _Bitwise_shiftRightZfBy = F2(function(offset, a)
+{
+	return a >>> offset;
+});
+
+
+
 
 // HELPERS
 
@@ -3872,43 +3909,6 @@ function _VirtualDom_dekey(keyedNode)
 
 
 
-var _Bitwise_and = F2(function(a, b)
-{
-	return a & b;
-});
-
-var _Bitwise_or = F2(function(a, b)
-{
-	return a | b;
-});
-
-var _Bitwise_xor = F2(function(a, b)
-{
-	return a ^ b;
-});
-
-function _Bitwise_complement(a)
-{
-	return ~a;
-};
-
-var _Bitwise_shiftLeftBy = F2(function(offset, a)
-{
-	return a << offset;
-});
-
-var _Bitwise_shiftRightBy = F2(function(offset, a)
-{
-	return a >> offset;
-});
-
-var _Bitwise_shiftRightZfBy = F2(function(offset, a)
-{
-	return a >>> offset;
-});
-
-
-
 
 // ELEMENT
 
@@ -4351,15 +4351,11 @@ var author$project$Main$Position = F2(
 	function (x, y) {
 		return {x: x, y: y};
 	});
-var elm$core$Basics$False = {$: 'False'};
-var elm$core$Basics$True = {$: 'True'};
-var elm$core$Result$isOk = function (result) {
-	if (result.$ === 'Ok') {
-		return true;
-	} else {
-		return false;
-	}
-};
+var elm$core$Array$Array_elm_builtin = F4(
+	function (a, b, c, d) {
+		return {$: 'Array_elm_builtin', a: a, b: b, c: c, d: d};
+	});
+var elm$core$Array$branchFactor = 32;
 var elm$core$Basics$EQ = {$: 'EQ'};
 var elm$core$Basics$GT = {$: 'GT'};
 var elm$core$Basics$LT = {$: 'LT'};
@@ -4440,11 +4436,6 @@ var elm$core$Array$foldr = F3(
 var elm$core$Array$toList = function (array) {
 	return A3(elm$core$Array$foldr, elm$core$List$cons, _List_Nil, array);
 };
-var elm$core$Array$branchFactor = 32;
-var elm$core$Array$Array_elm_builtin = F4(
-	function (a, b, c, d) {
-		return {$: 'Array_elm_builtin', a: a, b: b, c: c, d: d};
-	});
 var elm$core$Basics$ceiling = _Basics_ceiling;
 var elm$core$Basics$fdiv = _Basics_fdiv;
 var elm$core$Basics$logBase = F2(
@@ -4456,6 +4447,15 @@ var elm$core$Array$shiftStep = elm$core$Basics$ceiling(
 	A2(elm$core$Basics$logBase, 2, elm$core$Array$branchFactor));
 var elm$core$Elm$JsArray$empty = _JsArray_empty;
 var elm$core$Array$empty = A4(elm$core$Array$Array_elm_builtin, 0, elm$core$Array$shiftStep, elm$core$Elm$JsArray$empty, elm$core$Elm$JsArray$empty);
+var elm$core$Basics$False = {$: 'False'};
+var elm$core$Basics$True = {$: 'True'};
+var elm$core$Result$isOk = function (result) {
+	if (result.$ === 'Ok') {
+		return true;
+	} else {
+		return false;
+	}
+};
 var elm$core$Array$Leaf = function (a) {
 	return {$: 'Leaf', a: a};
 };
@@ -4831,12 +4831,1227 @@ var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$Main$initialModel = function (_n0) {
 	return _Utils_Tuple2(
 		{
+			cornerThreshold: 110,
+			corners: elm$core$Array$empty,
 			currentlyDrawing: false,
-			path: _List_Nil,
-			pointerPosition: A2(author$project$Main$Position, 0, 0)
+			curvePath: elm$core$Array$empty,
+			endingCoordinates: _Utils_Tuple2(0, 0),
+			path: elm$core$Array$empty,
+			pointerPosition: A2(author$project$Main$Position, 0, 0),
+			recognizedSymbol: '',
+			smoothedPath: elm$core$Array$empty,
+			smoothingFactor: 0.75,
+			startingCoordinates: _Utils_Tuple2(0, 0),
+			thinnedPath: elm$core$Array$empty,
+			thinningFactor: 3
 		},
 		elm$core$Platform$Cmd$none);
 };
+var author$project$Types$fromMaybePoint = function (x) {
+	if (x.$ === 'Just') {
+		var y = x.a;
+		return y;
+	} else {
+		return _Utils_Tuple2(0, 0);
+	}
+};
+var elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var elm$core$Array$bitMask = 4294967295 >>> (32 - elm$core$Array$shiftStep);
+var elm$core$Bitwise$and = _Bitwise_and;
+var elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var elm$core$Array$getHelp = F3(
+	function (shift, index, tree) {
+		getHelp:
+		while (true) {
+			var pos = elm$core$Array$bitMask & (index >>> shift);
+			var _n0 = A2(elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_n0.$ === 'SubTree') {
+				var subTree = _n0.a;
+				var $temp$shift = shift - elm$core$Array$shiftStep,
+					$temp$index = index,
+					$temp$tree = subTree;
+				shift = $temp$shift;
+				index = $temp$index;
+				tree = $temp$tree;
+				continue getHelp;
+			} else {
+				var values = _n0.a;
+				return A2(elm$core$Elm$JsArray$unsafeGet, elm$core$Array$bitMask & index, values);
+			}
+		}
+	});
+var elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var elm$core$Basics$ge = _Utils_ge;
+var elm$core$Array$get = F2(
+	function (index, _n0) {
+		var len = _n0.a;
+		var startShift = _n0.b;
+		var tree = _n0.c;
+		var tail = _n0.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? elm$core$Maybe$Nothing : ((_Utils_cmp(
+			index,
+			elm$core$Array$tailIndex(len)) > -1) ? elm$core$Maybe$Just(
+			A2(elm$core$Elm$JsArray$unsafeGet, elm$core$Array$bitMask & index, tail)) : elm$core$Maybe$Just(
+			A3(elm$core$Array$getHelp, startShift, index, tree)));
+	});
+var author$project$DataManipulation$getPointReversed = F3(
+	function (array, arrayLength, position) {
+		return author$project$Types$fromMaybePoint(
+			A2(elm$core$Array$get, (arrayLength - 1) - position, array));
+	});
+var elm$core$Array$length = function (_n0) {
+	var len = _n0.a;
+	return len;
+};
+var elm$core$Basics$neq = _Utils_notEqual;
+var author$project$DataManipulation$checkForDuplicate = F2(
+	function (cornerPoints, newCorner) {
+		var numberOfCorners = elm$core$Array$length(cornerPoints);
+		if (!numberOfCorners) {
+			return false;
+		} else {
+			var lastCorner = A3(author$project$DataManipulation$getPointReversed, cornerPoints, numberOfCorners, 0);
+			return (!_Utils_eq(lastCorner, newCorner)) ? false : true;
+		}
+	});
+var elm$core$Basics$acos = _Basics_acos;
+var elm$core$Basics$pow = _Basics_pow;
+var elm$core$Basics$sqrt = _Basics_sqrt;
+var author$project$DataManipulation$getAngleBetweenTwoVectors = F2(
+	function (_n0, _n1) {
+		var xA = _n0.a;
+		var yA = _n0.b;
+		var xB = _n1.a;
+		var yB = _n1.b;
+		var vectorMagnitudeB = elm$core$Basics$sqrt(
+			A2(elm$core$Basics$pow, xB, 2) + A2(elm$core$Basics$pow, yB, 2));
+		var vectorMagnitudeA = elm$core$Basics$sqrt(
+			A2(elm$core$Basics$pow, xA, 2) + A2(elm$core$Basics$pow, yA, 2));
+		var dotProduct = (xA * xB) + (yA * yB);
+		return elm$core$Basics$acos(dotProduct / (vectorMagnitudeA * vectorMagnitudeB));
+	});
+var author$project$DataManipulation$getVector = F2(
+	function (_n0, _n1) {
+		var xTj = _n0.a;
+		var yTj = _n0.b;
+		var xTj_sub_1 = _n1.a;
+		var yTj_sub_1 = _n1.b;
+		var y = yTj_sub_1 - yTj;
+		var x = xTj - xTj_sub_1;
+		return _Utils_Tuple2(x, y);
+	});
+var elm$core$Elm$JsArray$push = _JsArray_push;
+var elm$core$Elm$JsArray$singleton = _JsArray_singleton;
+var elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
+var elm$core$Array$insertTailInTree = F4(
+	function (shift, index, tail, tree) {
+		var pos = elm$core$Array$bitMask & (index >>> shift);
+		if (_Utils_cmp(
+			pos,
+			elm$core$Elm$JsArray$length(tree)) > -1) {
+			if (shift === 5) {
+				return A2(
+					elm$core$Elm$JsArray$push,
+					elm$core$Array$Leaf(tail),
+					tree);
+			} else {
+				var newSub = elm$core$Array$SubTree(
+					A4(elm$core$Array$insertTailInTree, shift - elm$core$Array$shiftStep, index, tail, elm$core$Elm$JsArray$empty));
+				return A2(elm$core$Elm$JsArray$push, newSub, tree);
+			}
+		} else {
+			var value = A2(elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (value.$ === 'SubTree') {
+				var subTree = value.a;
+				var newSub = elm$core$Array$SubTree(
+					A4(elm$core$Array$insertTailInTree, shift - elm$core$Array$shiftStep, index, tail, subTree));
+				return A3(elm$core$Elm$JsArray$unsafeSet, pos, newSub, tree);
+			} else {
+				var newSub = elm$core$Array$SubTree(
+					A4(
+						elm$core$Array$insertTailInTree,
+						shift - elm$core$Array$shiftStep,
+						index,
+						tail,
+						elm$core$Elm$JsArray$singleton(value)));
+				return A3(elm$core$Elm$JsArray$unsafeSet, pos, newSub, tree);
+			}
+		}
+	});
+var elm$core$Array$unsafeReplaceTail = F2(
+	function (newTail, _n0) {
+		var len = _n0.a;
+		var startShift = _n0.b;
+		var tree = _n0.c;
+		var tail = _n0.d;
+		var originalTailLen = elm$core$Elm$JsArray$length(tail);
+		var newTailLen = elm$core$Elm$JsArray$length(newTail);
+		var newArrayLen = len + (newTailLen - originalTailLen);
+		if (_Utils_eq(newTailLen, elm$core$Array$branchFactor)) {
+			var overflow = _Utils_cmp(newArrayLen >>> elm$core$Array$shiftStep, 1 << startShift) > 0;
+			if (overflow) {
+				var newShift = startShift + elm$core$Array$shiftStep;
+				var newTree = A4(
+					elm$core$Array$insertTailInTree,
+					newShift,
+					len,
+					newTail,
+					elm$core$Elm$JsArray$singleton(
+						elm$core$Array$SubTree(tree)));
+				return A4(elm$core$Array$Array_elm_builtin, newArrayLen, newShift, newTree, elm$core$Elm$JsArray$empty);
+			} else {
+				return A4(
+					elm$core$Array$Array_elm_builtin,
+					newArrayLen,
+					startShift,
+					A4(elm$core$Array$insertTailInTree, startShift, len, newTail, tree),
+					elm$core$Elm$JsArray$empty);
+			}
+		} else {
+			return A4(elm$core$Array$Array_elm_builtin, newArrayLen, startShift, tree, newTail);
+		}
+	});
+var elm$core$Array$push = F2(
+	function (a, array) {
+		var tail = array.d;
+		return A2(
+			elm$core$Array$unsafeReplaceTail,
+			A2(elm$core$Elm$JsArray$push, a, tail),
+			array);
+	});
+var elm$core$Basics$pi = _Basics_pi;
+var elm$core$Basics$degrees = function (angleInDegrees) {
+	return (angleInDegrees * elm$core$Basics$pi) / 180;
+};
+var author$project$DataManipulation$detectCorners = F3(
+	function (thinnedPoints, cornersPoints, cornerThreshold) {
+		var numberOfThinnedPoints = elm$core$Array$length(thinnedPoints);
+		if (numberOfThinnedPoints > 5) {
+			var xyTj_sub_4 = A3(author$project$DataManipulation$getPointReversed, thinnedPoints, numberOfThinnedPoints, 4);
+			var xyTj_sub_3 = A3(author$project$DataManipulation$getPointReversed, thinnedPoints, numberOfThinnedPoints, 3);
+			var xyTj_sub_2 = A3(author$project$DataManipulation$getPointReversed, thinnedPoints, numberOfThinnedPoints, 2);
+			var xyTj_sub_1 = A3(author$project$DataManipulation$getPointReversed, thinnedPoints, numberOfThinnedPoints, 1);
+			var xyTj = A3(author$project$DataManipulation$getPointReversed, thinnedPoints, numberOfThinnedPoints, 0);
+			var vec4 = A2(author$project$DataManipulation$getVector, xyTj_sub_4, xyTj_sub_3);
+			var vec3 = A2(author$project$DataManipulation$getVector, xyTj_sub_3, xyTj_sub_2);
+			var vec2 = A2(author$project$DataManipulation$getVector, xyTj_sub_1, xyTj_sub_2);
+			var vec1 = A2(author$project$DataManipulation$getVector, xyTj, xyTj_sub_1);
+			var angleBetweenVec3Vec4 = A2(author$project$DataManipulation$getAngleBetweenTwoVectors, vec3, vec4);
+			var angleBetweenVec1Vec3 = A2(author$project$DataManipulation$getAngleBetweenTwoVectors, vec1, vec3);
+			var angleBetweenVec1Vec2 = A2(author$project$DataManipulation$getAngleBetweenTwoVectors, vec1, vec2);
+			return ((_Utils_cmp(
+				angleBetweenVec1Vec2,
+				elm$core$Basics$degrees(45)) < 1) && ((_Utils_cmp(
+				angleBetweenVec3Vec4,
+				elm$core$Basics$degrees(45)) < 1) && ((_Utils_cmp(
+				angleBetweenVec1Vec3,
+				elm$core$Basics$degrees(cornerThreshold)) < 1) && (!A2(author$project$DataManipulation$checkForDuplicate, cornersPoints, xyTj_sub_2))))) ? A2(elm$core$Array$push, xyTj_sub_2, cornersPoints) : cornersPoints;
+		} else {
+			return cornersPoints;
+		}
+	});
+var elm$core$Basics$atan2 = _Basics_atan2;
+var author$project$DataManipulation$convertFromCartesianToPolar = F2(
+	function (_n0, _n1) {
+		var xTj = _n0.a;
+		var yTj = _n0.b;
+		var xTj_sub_1 = _n1.a;
+		var yTj_sub_1 = _n1.b;
+		var y = yTj_sub_1 - yTj;
+		var x = xTj_sub_1 - xTj;
+		var theta_rad = A2(elm$core$Basics$atan2, y, x);
+		var theta_degree = (theta_rad < 0) ? (theta_rad + (2 * elm$core$Basics$pi)) : theta_rad;
+		return theta_degree;
+	});
+var author$project$Types$DOWN = {$: 'DOWN'};
+var author$project$Types$LEFT = {$: 'LEFT'};
+var author$project$Types$RIGHT = {$: 'RIGHT'};
+var author$project$Types$UNKNOWN = {$: 'UNKNOWN'};
+var author$project$Types$UP = {$: 'UP'};
+var author$project$DataManipulation$convertFromPolarToDirection = function (deg) {
+	return ((_Utils_cmp(
+		elm$core$Basics$degrees(53),
+		deg) < 1) && (_Utils_cmp(
+		deg,
+		elm$core$Basics$degrees(137)) < 0)) ? author$project$Types$UP : (((_Utils_cmp(
+		elm$core$Basics$degrees(143),
+		deg) < 1) && (_Utils_cmp(
+		deg,
+		elm$core$Basics$degrees(217)) < 0)) ? author$project$Types$RIGHT : (((_Utils_cmp(
+		elm$core$Basics$degrees(233),
+		deg) < 1) && (_Utils_cmp(
+		deg,
+		elm$core$Basics$degrees(307)) < 0)) ? author$project$Types$DOWN : (((_Utils_cmp(
+		elm$core$Basics$degrees(323),
+		deg) < 1) && (deg < 37)) ? author$project$Types$LEFT : author$project$Types$UNKNOWN)));
+};
+var author$project$Types$fromMaybeDirection = function (direction) {
+	if (direction.$ === 'Just') {
+		var d = direction.a;
+		return d;
+	} else {
+		return author$project$Types$UNKNOWN;
+	}
+};
+var elm$core$Array$isEmpty = function (_n0) {
+	var len = _n0.a;
+	return !len;
+};
+var author$project$DataManipulation$getDirection = F2(
+	function (thinnedPath, directionPath) {
+		var numberOfThinnedPoints = elm$core$Array$length(thinnedPath);
+		var xy_Tj = author$project$Types$fromMaybePoint(
+			A2(elm$core$Array$get, numberOfThinnedPoints - 1, thinnedPath));
+		var xy_Tj_sub_1 = author$project$Types$fromMaybePoint(
+			A2(elm$core$Array$get, numberOfThinnedPoints - 2, thinnedPath));
+		var numberOfDirections = elm$core$Array$length(directionPath);
+		var deg = A2(author$project$DataManipulation$convertFromCartesianToPolar, xy_Tj, xy_Tj_sub_1);
+		var direction = author$project$DataManipulation$convertFromPolarToDirection(deg);
+		if ((numberOfThinnedPoints >= 2) && ((numberOfDirections < 8) && (!_Utils_eq(direction, author$project$Types$UNKNOWN)))) {
+			if (elm$core$Array$isEmpty(directionPath)) {
+				return A2(elm$core$Array$push, direction, directionPath);
+			} else {
+				var lastDirection = author$project$Types$fromMaybeDirection(
+					A2(elm$core$Array$get, numberOfDirections - 1, directionPath));
+				return _Utils_eq(lastDirection, direction) ? directionPath : A2(elm$core$Array$push, direction, directionPath);
+			}
+		} else {
+			return directionPath;
+		}
+	});
+var author$project$Types$I = {$: 'I'};
+var author$project$Types$II = {$: 'II'};
+var author$project$Types$III = {$: 'III'};
+var author$project$Types$IV = {$: 'IV'};
+var author$project$DataManipulation$getPositionQuadrant = F2(
+	function (_n0, extremes) {
+		var x = _n0.a;
+		var y = _n0.b;
+		var halfWidth = extremes.width / 2;
+		var halfHeight = extremes.height / 2;
+		return ((_Utils_cmp(
+			y,
+			elm$core$Basics$floor(extremes.bottom - halfHeight)) < 1) && (_Utils_cmp(
+			x,
+			elm$core$Basics$floor(extremes.right - halfWidth)) < 1)) ? author$project$Types$II : (((_Utils_cmp(
+			x,
+			elm$core$Basics$floor(extremes.right - halfWidth)) < 0) && (_Utils_cmp(
+			y,
+			elm$core$Basics$floor(extremes.bottom - halfHeight)) > 0)) ? author$project$Types$III : (((_Utils_cmp(
+			x,
+			elm$core$Basics$floor(extremes.right - halfWidth)) > -1) && (_Utils_cmp(
+			y,
+			elm$core$Basics$floor(extremes.bottom - halfHeight)) > -1)) ? author$project$Types$IV : author$project$Types$I));
+	});
+var author$project$Types$fromMaybeNumber = function (number) {
+	if (number.$ === 'Just') {
+		var y = number.a;
+		return y;
+	} else {
+		return 0;
+	}
+};
+var elm$core$List$foldrHelper = F4(
+	function (fn, acc, ctr, ls) {
+		if (!ls.b) {
+			return acc;
+		} else {
+			var a = ls.a;
+			var r1 = ls.b;
+			if (!r1.b) {
+				return A2(fn, a, acc);
+			} else {
+				var b = r1.a;
+				var r2 = r1.b;
+				if (!r2.b) {
+					return A2(
+						fn,
+						a,
+						A2(fn, b, acc));
+				} else {
+					var c = r2.a;
+					var r3 = r2.b;
+					if (!r3.b) {
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(fn, c, acc)));
+					} else {
+						var d = r3.a;
+						var r4 = r3.b;
+						var res = (ctr > 500) ? A3(
+							elm$core$List$foldl,
+							fn,
+							acc,
+							elm$core$List$reverse(r4)) : A4(elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(
+									fn,
+									c,
+									A2(fn, d, res))));
+					}
+				}
+			}
+		}
+	});
+var elm$core$List$foldr = F3(
+	function (fn, acc, ls) {
+		return A4(elm$core$List$foldrHelper, fn, acc, 0, ls);
+	});
+var elm$core$List$map = F2(
+	function (f, xs) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A2(
+						elm$core$List$cons,
+						f(x),
+						acc);
+				}),
+			_List_Nil,
+			xs);
+	});
+var elm$core$List$maximum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(
+			A3(elm$core$List$foldl, elm$core$Basics$max, x, xs));
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
+var elm$core$List$minimum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(
+			A3(elm$core$List$foldl, elm$core$Basics$min, x, xs));
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var author$project$DataManipulation$getStartAndEndPosition = function (thinnedInput) {
+	var startingPositon = author$project$Types$fromMaybePoint(
+		A2(elm$core$Array$get, 0, thinnedInput));
+	var listThinnedInput = elm$core$Array$toList(thinnedInput);
+	var listX = A2(
+		elm$core$List$map,
+		function (_n1) {
+			var x = _n1.a;
+			return x;
+		},
+		listThinnedInput);
+	var right = author$project$Types$fromMaybeNumber(
+		elm$core$List$maximum(listX));
+	var listY = A2(
+		elm$core$List$map,
+		function (_n0) {
+			var y = _n0.b;
+			return y;
+		},
+		listThinnedInput);
+	var top = author$project$Types$fromMaybeNumber(
+		elm$core$List$minimum(listY));
+	var left = author$project$Types$fromMaybeNumber(
+		elm$core$List$minimum(listX));
+	var width = right - left;
+	var endingPositon = author$project$Types$fromMaybePoint(
+		A2(
+			elm$core$Array$get,
+			elm$core$Array$length(thinnedInput) - 1,
+			thinnedInput));
+	var bottom = author$project$Types$fromMaybeNumber(
+		elm$core$List$maximum(listY));
+	var height = bottom - top;
+	var extremes = {bottom: bottom, height: height, left: left, right: right, top: top, width: width};
+	var endPointQuadrant = A2(author$project$DataManipulation$getPositionQuadrant, endingPositon, extremes);
+	var startPointQuadrant = A2(author$project$DataManipulation$getPositionQuadrant, startingPositon, extremes);
+	return _Utils_Tuple2(startPointQuadrant, endPointQuadrant);
+};
+var author$project$Symbols$recognizeSymbolDown = function (symbol) {
+	var pattern = elm$core$Array$toList(symbol.directions);
+	_n0$12:
+	while (true) {
+		if (pattern.b && (pattern.a.$ === 'DOWN')) {
+			if (!pattern.b.b) {
+				var _n1 = pattern.a;
+				return 'I';
+			} else {
+				if (!pattern.b.b.b) {
+					if (pattern.b.a.$ === 'RIGHT') {
+						var _n9 = pattern.a;
+						var _n10 = pattern.b;
+						var _n11 = _n10.a;
+						return 'L';
+					} else {
+						break _n0$12;
+					}
+				} else {
+					if (!pattern.b.b.b.b) {
+						if ((pattern.b.a.$ === 'UP') && (pattern.b.b.a.$ === 'DOWN')) {
+							var _n41 = pattern.a;
+							var _n42 = pattern.b;
+							var _n43 = _n42.a;
+							var _n44 = _n42.b;
+							var _n45 = _n44.a;
+							return 'K';
+						} else {
+							break _n0$12;
+						}
+					} else {
+						if (pattern.b.b.b.b.b) {
+							if (pattern.b.b.b.b.b.b) {
+								if (!pattern.b.b.b.b.b.b.b) {
+									switch (pattern.b.a.$) {
+										case 'RIGHT':
+											if ((((pattern.b.b.a.$ === 'UP') && (pattern.b.b.b.a.$ === 'DOWN')) && (pattern.b.b.b.b.a.$ === 'RIGHT')) && (pattern.b.b.b.b.b.a.$ === 'LEFT')) {
+												var _n21 = pattern.a;
+												var _n22 = pattern.b;
+												var _n23 = _n22.a;
+												var _n24 = _n22.b;
+												var _n25 = _n24.a;
+												var _n26 = _n24.b;
+												var _n27 = _n26.a;
+												var _n28 = _n26.b;
+												var _n29 = _n28.a;
+												var _n30 = _n28.b;
+												var _n31 = _n30.a;
+												return 'Y';
+											} else {
+												break _n0$12;
+											}
+										case 'UP':
+											if ((((pattern.b.b.a.$ === 'DOWN') && (pattern.b.b.b.a.$ === 'LEFT')) && (pattern.b.b.b.b.a.$ === 'DOWN')) && (pattern.b.b.b.b.b.a.$ === 'RIGHT')) {
+												var _n46 = pattern.a;
+												var _n47 = pattern.b;
+												var _n48 = _n47.a;
+												var _n49 = _n47.b;
+												var _n50 = _n49.a;
+												var _n51 = _n49.b;
+												var _n52 = _n51.a;
+												var _n53 = _n51.b;
+												var _n54 = _n53.a;
+												var _n55 = _n53.b;
+												var _n56 = _n55.a;
+												return 'K';
+											} else {
+												break _n0$12;
+											}
+										default:
+											break _n0$12;
+									}
+								} else {
+									break _n0$12;
+								}
+							} else {
+								switch (pattern.b.a.$) {
+									case 'RIGHT':
+										if (((pattern.b.b.a.$ === 'UP') && (pattern.b.b.b.a.$ === 'DOWN')) && (pattern.b.b.b.b.a.$ === 'LEFT')) {
+											var _n12 = pattern.a;
+											var _n13 = pattern.b;
+											var _n14 = _n13.a;
+											var _n15 = _n13.b;
+											var _n16 = _n15.a;
+											var _n17 = _n15.b;
+											var _n18 = _n17.a;
+											var _n19 = _n17.b;
+											var _n20 = _n19.a;
+											return 'Y';
+										} else {
+											break _n0$12;
+										}
+									case 'UP':
+										switch (pattern.b.b.a.$) {
+											case 'RIGHT':
+												if ((pattern.b.b.b.a.$ === 'UP') && (pattern.b.b.b.b.a.$ === 'DOWN')) {
+													var _n32 = pattern.a;
+													var _n33 = pattern.b;
+													var _n34 = _n33.a;
+													var _n35 = _n33.b;
+													var _n36 = _n35.a;
+													var _n37 = _n35.b;
+													var _n38 = _n37.a;
+													var _n39 = _n37.b;
+													var _n40 = _n39.a;
+													return 'H';
+												} else {
+													break _n0$12;
+												}
+											case 'LEFT':
+												if ((pattern.b.b.b.a.$ === 'DOWN') && (pattern.b.b.b.b.a.$ === 'RIGHT')) {
+													var _n57 = pattern.a;
+													var _n58 = pattern.b;
+													var _n59 = _n58.a;
+													var _n60 = _n58.b;
+													var _n61 = _n60.a;
+													var _n62 = _n60.b;
+													var _n63 = _n62.a;
+													var _n64 = _n62.b;
+													var _n65 = _n64.a;
+													return 'K';
+												} else {
+													break _n0$12;
+												}
+											default:
+												break _n0$12;
+										}
+									default:
+										break _n0$12;
+								}
+							}
+						} else {
+							switch (pattern.b.a.$) {
+								case 'UP':
+									if (pattern.b.b.a.$ === 'DOWN') {
+										switch (pattern.b.b.b.a.$) {
+											case 'RIGHT':
+												var _n66 = pattern.a;
+												var _n67 = pattern.b;
+												var _n68 = _n67.a;
+												var _n69 = _n67.b;
+												var _n70 = _n69.a;
+												var _n71 = _n69.b;
+												var _n72 = _n71.a;
+												return 'K';
+											case 'UP':
+												var _n73 = pattern.a;
+												var _n74 = pattern.b;
+												var _n75 = _n74.a;
+												var _n76 = _n74.b;
+												var _n77 = _n76.a;
+												var _n78 = _n76.b;
+												var _n79 = _n78.a;
+												return 'W';
+											default:
+												break _n0$12;
+										}
+									} else {
+										break _n0$12;
+									}
+								case 'RIGHT':
+									if (pattern.b.b.a.$ === 'UP') {
+										switch (pattern.b.b.b.a.$) {
+											case 'LEFT':
+												var _n2 = pattern.a;
+												var _n3 = pattern.b;
+												var _n4 = _n3.a;
+												var _n5 = _n3.b;
+												var _n6 = _n5.a;
+												var _n7 = _n5.b;
+												var _n8 = _n7.a;
+												return 'D';
+											case 'DOWN':
+												var _n80 = pattern.a;
+												var _n81 = pattern.b;
+												var _n82 = _n81.a;
+												var _n83 = _n81.b;
+												var _n84 = _n83.a;
+												var _n85 = _n83.b;
+												var _n86 = _n85.a;
+												return '4';
+											default:
+												break _n0$12;
+										}
+									} else {
+										break _n0$12;
+									}
+								default:
+									break _n0$12;
+							}
+						}
+					}
+				}
+			}
+		} else {
+			break _n0$12;
+		}
+	}
+	return 'Unknown';
+};
+var author$project$Symbols$recognizeSymbolLeft = function (symbol) {
+	var pattern = elm$core$Array$toList(symbol.directions);
+	_n0$10:
+	while (true) {
+		if (((pattern.b && (pattern.a.$ === 'LEFT')) && pattern.b.b) && (pattern.b.a.$ === 'DOWN')) {
+			if (!pattern.b.b.b) {
+				var _n1 = pattern.a;
+				var _n2 = pattern.b;
+				var _n3 = _n2.a;
+				return 'F';
+			} else {
+				if (((pattern.b.b.a.$ === 'RIGHT') && pattern.b.b.b.b) && pattern.b.b.b.b.b) {
+					if (!pattern.b.b.b.b.b.b) {
+						if (pattern.b.b.b.b.a.$ === 'LEFT') {
+							switch (pattern.b.b.b.a.$) {
+								case 'UP':
+									var _n15 = pattern.a;
+									var _n16 = pattern.b;
+									var _n17 = _n16.a;
+									var _n18 = _n16.b;
+									var _n19 = _n18.a;
+									var _n20 = _n18.b;
+									var _n21 = _n20.a;
+									var _n22 = _n20.b;
+									var _n23 = _n22.a;
+									return 'G';
+								case 'DOWN':
+									var _n24 = pattern.a;
+									var _n25 = pattern.b;
+									var _n26 = _n25.a;
+									var _n27 = _n25.b;
+									var _n28 = _n27.a;
+									var _n29 = _n27.b;
+									var _n30 = _n29.a;
+									var _n31 = _n29.b;
+									var _n32 = _n31.a;
+									return 'S';
+								default:
+									break _n0$10;
+							}
+						} else {
+							break _n0$10;
+						}
+					} else {
+						if (pattern.b.b.b.b.b.b.b) {
+							if (((pattern.b.b.b.a.$ === 'DOWN') && (pattern.b.b.b.b.a.$ === 'LEFT')) && (pattern.b.b.b.b.b.a.$ === 'UP')) {
+								if (!pattern.b.b.b.b.b.b.b.b) {
+									if (pattern.b.b.b.b.b.b.a.$ === 'LEFT') {
+										var _n61 = pattern.a;
+										var _n62 = pattern.b;
+										var _n63 = _n62.a;
+										var _n64 = _n62.b;
+										var _n65 = _n64.a;
+										var _n66 = _n64.b;
+										var _n67 = _n66.a;
+										var _n68 = _n66.b;
+										var _n69 = _n68.a;
+										var _n70 = _n68.b;
+										var _n71 = _n70.a;
+										var _n72 = _n70.b;
+										var _n73 = _n72.a;
+										return '8';
+									} else {
+										break _n0$10;
+									}
+								} else {
+									if ((pattern.b.b.b.b.b.b.a.$ === 'RIGHT') && (pattern.b.b.b.b.b.b.b.a.$ === 'UP')) {
+										if (pattern.b.b.b.b.b.b.b.b.b) {
+											if ((pattern.b.b.b.b.b.b.b.b.a.$ === 'LEFT') && (!pattern.b.b.b.b.b.b.b.b.b.b)) {
+												var _n44 = pattern.a;
+												var _n45 = pattern.b;
+												var _n46 = _n45.a;
+												var _n47 = _n45.b;
+												var _n48 = _n47.a;
+												var _n49 = _n47.b;
+												var _n50 = _n49.a;
+												var _n51 = _n49.b;
+												var _n52 = _n51.a;
+												var _n53 = _n51.b;
+												var _n54 = _n53.a;
+												var _n55 = _n53.b;
+												var _n56 = _n55.a;
+												var _n57 = _n55.b;
+												var _n58 = _n57.a;
+												var _n59 = _n57.b;
+												var _n60 = _n59.a;
+												return '8';
+											} else {
+												break _n0$10;
+											}
+										} else {
+											var _n74 = pattern.a;
+											var _n75 = pattern.b;
+											var _n76 = _n75.a;
+											var _n77 = _n75.b;
+											var _n78 = _n77.a;
+											var _n79 = _n77.b;
+											var _n80 = _n79.a;
+											var _n81 = _n79.b;
+											var _n82 = _n81.a;
+											var _n83 = _n81.b;
+											var _n84 = _n83.a;
+											var _n85 = _n83.b;
+											var _n86 = _n85.a;
+											var _n87 = _n85.b;
+											var _n88 = _n87.a;
+											return '8';
+										}
+									} else {
+										break _n0$10;
+									}
+								}
+							} else {
+								break _n0$10;
+							}
+						} else {
+							switch (pattern.b.b.b.b.a.$) {
+								case 'LEFT':
+									switch (pattern.b.b.b.a.$) {
+										case 'UP':
+											if (pattern.b.b.b.b.b.a.$ === 'DOWN') {
+												var _n33 = pattern.a;
+												var _n34 = pattern.b;
+												var _n35 = _n34.a;
+												var _n36 = _n34.b;
+												var _n37 = _n36.a;
+												var _n38 = _n36.b;
+												var _n39 = _n38.a;
+												var _n40 = _n38.b;
+												var _n41 = _n40.a;
+												var _n42 = _n40.b;
+												var _n43 = _n42.a;
+												return '6';
+											} else {
+												break _n0$10;
+											}
+										case 'DOWN':
+											if (pattern.b.b.b.b.b.a.$ === 'UP') {
+												var _n89 = pattern.a;
+												var _n90 = pattern.b;
+												var _n91 = _n90.a;
+												var _n92 = _n90.b;
+												var _n93 = _n92.a;
+												var _n94 = _n92.b;
+												var _n95 = _n94.a;
+												var _n96 = _n94.b;
+												var _n97 = _n96.a;
+												var _n98 = _n96.b;
+												var _n99 = _n98.a;
+												return '8';
+											} else {
+												break _n0$10;
+											}
+										default:
+											break _n0$10;
+									}
+								case 'DOWN':
+									switch (pattern.b.b.b.a.$) {
+										case 'LEFT':
+											if (pattern.b.b.b.b.b.a.$ === 'RIGHT') {
+												var _n4 = pattern.a;
+												var _n5 = pattern.b;
+												var _n6 = _n5.a;
+												var _n7 = _n5.b;
+												var _n8 = _n7.a;
+												var _n9 = _n7.b;
+												var _n10 = _n9.a;
+												var _n11 = _n9.b;
+												var _n12 = _n11.a;
+												var _n13 = _n11.b;
+												var _n14 = _n13.a;
+												return 'E';
+											} else {
+												break _n0$10;
+											}
+										case 'UP':
+											if (pattern.b.b.b.b.b.a.$ === 'LEFT') {
+												var _n100 = pattern.a;
+												var _n101 = pattern.b;
+												var _n102 = _n101.a;
+												var _n103 = _n101.b;
+												var _n104 = _n103.a;
+												var _n105 = _n103.b;
+												var _n106 = _n105.a;
+												var _n107 = _n105.b;
+												var _n108 = _n107.a;
+												var _n109 = _n107.b;
+												var _n110 = _n109.a;
+												return '9';
+											} else {
+												break _n0$10;
+											}
+										default:
+											break _n0$10;
+									}
+								default:
+									break _n0$10;
+							}
+						}
+					}
+				} else {
+					break _n0$10;
+				}
+			}
+		} else {
+			break _n0$10;
+		}
+	}
+	return 'Unknown';
+};
+var author$project$Symbols$recognizeSymbolRight = function (symbol) {
+	var pattern = elm$core$Array$toList(symbol.directions);
+	_n0$8:
+	while (true) {
+		if ((pattern.b && (pattern.a.$ === 'RIGHT')) && pattern.b.b) {
+			if (pattern.b.b.b) {
+				if (!pattern.b.b.b.b) {
+					switch (pattern.b.a.$) {
+						case 'DOWN':
+							switch (pattern.b.b.a.$) {
+								case 'LEFT':
+									var _n1 = pattern.a;
+									var _n2 = pattern.b;
+									var _n3 = _n2.a;
+									var _n4 = _n2.b;
+									var _n5 = _n4.a;
+									return 'J';
+								case 'RIGHT':
+									var _n13 = pattern.a;
+									var _n14 = pattern.b;
+									var _n15 = _n14.a;
+									var _n16 = _n14.b;
+									var _n17 = _n16.a;
+									return 'Z';
+								default:
+									break _n0$8;
+							}
+						case 'LEFT':
+							if (pattern.b.b.a.$ === 'RIGHT') {
+								var _n18 = pattern.a;
+								var _n19 = pattern.b;
+								var _n20 = _n19.a;
+								var _n21 = _n19.b;
+								var _n22 = _n21.a;
+								return 'Z';
+							} else {
+								break _n0$8;
+							}
+						default:
+							break _n0$8;
+					}
+				} else {
+					if ((pattern.b.a.$ === 'DOWN') && (pattern.b.b.a.$ === 'LEFT')) {
+						if (!pattern.b.b.b.b.b) {
+							switch (pattern.b.b.b.a.$) {
+								case 'UP':
+									var _n6 = pattern.a;
+									var _n7 = pattern.b;
+									var _n8 = _n7.a;
+									var _n9 = _n7.b;
+									var _n10 = _n9.a;
+									var _n11 = _n9.b;
+									var _n12 = _n11.a;
+									return 'J';
+								case 'RIGHT':
+									var _n32 = pattern.a;
+									var _n33 = pattern.b;
+									var _n34 = _n33.a;
+									var _n35 = _n33.b;
+									var _n36 = _n35.a;
+									var _n37 = _n35.b;
+									var _n38 = _n37.a;
+									return 'Z';
+								default:
+									break _n0$8;
+							}
+						} else {
+							if (!pattern.b.b.b.b.b.b) {
+								if ((pattern.b.b.b.a.$ === 'DOWN') && (pattern.b.b.b.b.a.$ === 'RIGHT')) {
+									var _n23 = pattern.a;
+									var _n24 = pattern.b;
+									var _n25 = _n24.a;
+									var _n26 = _n24.b;
+									var _n27 = _n26.a;
+									var _n28 = _n26.b;
+									var _n29 = _n28.a;
+									var _n30 = _n28.b;
+									var _n31 = _n30.a;
+									return 'Z';
+								} else {
+									break _n0$8;
+								}
+							} else {
+								if ((((pattern.b.b.b.a.$ === 'RIGHT') && (pattern.b.b.b.b.a.$ === 'DOWN')) && (pattern.b.b.b.b.b.a.$ === 'LEFT')) && (!pattern.b.b.b.b.b.b.b)) {
+									var _n39 = pattern.a;
+									var _n40 = pattern.b;
+									var _n41 = _n40.a;
+									var _n42 = _n40.b;
+									var _n43 = _n42.a;
+									var _n44 = _n42.b;
+									var _n45 = _n44.a;
+									var _n46 = _n44.b;
+									var _n47 = _n46.a;
+									var _n48 = _n46.b;
+									var _n49 = _n48.a;
+									return '3';
+								} else {
+									break _n0$8;
+								}
+							}
+						}
+					} else {
+						break _n0$8;
+					}
+				}
+			} else {
+				if (pattern.b.a.$ === 'DOWN') {
+					var _n50 = pattern.a;
+					var _n51 = pattern.b;
+					var _n52 = _n51.a;
+					return '7';
+				} else {
+					break _n0$8;
+				}
+			}
+		} else {
+			break _n0$8;
+		}
+	}
+	return 'Unknown';
+};
+var author$project$Symbols$recognizeSymbolUp = function (symbol) {
+	var pattern = elm$core$Array$toList(symbol.directions);
+	_n0$8:
+	while (true) {
+		if ((pattern.b && (pattern.a.$ === 'UP')) && pattern.b.b) {
+			if (!pattern.b.b.b) {
+				if (pattern.b.a.$ === 'DOWN') {
+					var _n1 = pattern.a;
+					var _n2 = pattern.b;
+					var _n3 = _n2.a;
+					return '1';
+				} else {
+					break _n0$8;
+				}
+			} else {
+				if (!pattern.b.b.b.b) {
+					if ((pattern.b.a.$ === 'DOWN') && (pattern.b.b.a.$ === 'UP')) {
+						var _n4 = pattern.a;
+						var _n5 = pattern.b;
+						var _n6 = _n5.a;
+						var _n7 = _n5.b;
+						var _n8 = _n7.a;
+						return 'A';
+					} else {
+						break _n0$8;
+					}
+				} else {
+					if (!pattern.b.b.b.b.b) {
+						switch (pattern.b.b.a.$) {
+							case 'UP':
+								if ((pattern.b.a.$ === 'DOWN') && (pattern.b.b.b.a.$ === 'DOWN')) {
+									var _n9 = pattern.a;
+									var _n10 = pattern.b;
+									var _n11 = _n10.a;
+									var _n12 = _n10.b;
+									var _n13 = _n12.a;
+									var _n14 = _n12.b;
+									var _n15 = _n14.a;
+									return 'M';
+								} else {
+									break _n0$8;
+								}
+							case 'DOWN':
+								switch (pattern.b.a.$) {
+									case 'RIGHT':
+										if (pattern.b.b.b.a.$ === 'LEFT') {
+											var _n29 = pattern.a;
+											var _n30 = pattern.b;
+											var _n31 = _n30.a;
+											var _n32 = _n30.b;
+											var _n33 = _n32.a;
+											var _n34 = _n32.b;
+											var _n35 = _n34.a;
+											return 'P';
+										} else {
+											break _n0$8;
+										}
+									case 'LEFT':
+										if (pattern.b.b.b.a.$ === 'RIGHT') {
+											var _n47 = pattern.a;
+											var _n48 = pattern.b;
+											var _n49 = _n48.a;
+											var _n50 = _n48.b;
+											var _n51 = _n50.a;
+											var _n52 = _n50.b;
+											var _n53 = _n52.a;
+											return 'C';
+										} else {
+											break _n0$8;
+										}
+									default:
+										break _n0$8;
+								}
+							default:
+								break _n0$8;
+						}
+					} else {
+						if (((pattern.b.a.$ === 'RIGHT') && (pattern.b.b.a.$ === 'DOWN')) && (pattern.b.b.b.a.$ === 'LEFT')) {
+							if (pattern.b.b.b.b.b.b) {
+								if ((pattern.b.b.b.b.a.$ === 'RIGHT') && (pattern.b.b.b.b.b.a.$ === 'DOWN')) {
+									if (pattern.b.b.b.b.b.b.b) {
+										if ((pattern.b.b.b.b.b.b.a.$ === 'LEFT') && (!pattern.b.b.b.b.b.b.b.b)) {
+											var _n16 = pattern.a;
+											var _n17 = pattern.b;
+											var _n18 = _n17.a;
+											var _n19 = _n17.b;
+											var _n20 = _n19.a;
+											var _n21 = _n19.b;
+											var _n22 = _n21.a;
+											var _n23 = _n21.b;
+											var _n24 = _n23.a;
+											var _n25 = _n23.b;
+											var _n26 = _n25.a;
+											var _n27 = _n25.b;
+											var _n28 = _n27.a;
+											return 'B';
+										} else {
+											break _n0$8;
+										}
+									} else {
+										var _n36 = pattern.a;
+										var _n37 = pattern.b;
+										var _n38 = _n37.a;
+										var _n39 = _n37.b;
+										var _n40 = _n39.a;
+										var _n41 = _n39.b;
+										var _n42 = _n41.a;
+										var _n43 = _n41.b;
+										var _n44 = _n43.a;
+										var _n45 = _n43.b;
+										var _n46 = _n45.a;
+										return 'R';
+									}
+								} else {
+									break _n0$8;
+								}
+							} else {
+								if (pattern.b.b.b.b.a.$ === 'UP') {
+									var _n54 = pattern.a;
+									var _n55 = pattern.b;
+									var _n56 = _n55.a;
+									var _n57 = _n55.b;
+									var _n58 = _n57.a;
+									var _n59 = _n57.b;
+									var _n60 = _n59.a;
+									var _n61 = _n59.b;
+									var _n62 = _n61.a;
+									return '2';
+								} else {
+									break _n0$8;
+								}
+							}
+						} else {
+							break _n0$8;
+						}
+					}
+				}
+			}
+		} else {
+			break _n0$8;
+		}
+	}
+	return 'Unknown';
+};
+var author$project$DataManipulation$recognizeSymbol = function (symbol) {
+	var firstDirection = author$project$Types$fromMaybeDirection(
+		A2(elm$core$Array$get, 0, symbol.directions));
+	switch (firstDirection.$) {
+		case 'DOWN':
+			return author$project$Symbols$recognizeSymbolDown(symbol);
+		case 'UP':
+			return author$project$Symbols$recognizeSymbolUp(symbol);
+		case 'LEFT':
+			return author$project$Symbols$recognizeSymbolLeft(symbol);
+		case 'RIGHT':
+			return author$project$Symbols$recognizeSymbolRight(symbol);
+		default:
+			return 'Unknown';
+	}
+};
+var elm$core$Basics$round = _Basics_round;
+var elm$core$Tuple$mapBoth = F3(
+	function (funcA, funcB, _n0) {
+		var x = _n0.a;
+		var y = _n0.b;
+		return _Utils_Tuple2(
+			funcA(x),
+			funcB(y));
+	});
+var author$project$DataManipulation$smoothing = F4(
+	function (rawPoints, smoothedPoints, sf, newPoint) {
+		var numberOfSmoothedPoints = elm$core$Array$length(smoothedPoints);
+		if (numberOfSmoothedPoints >= 1) {
+			var previousSmoothedPoint = (numberOfSmoothedPoints === 1) ? author$project$Types$fromMaybePoint(
+				A2(elm$core$Array$get, 0, smoothedPoints)) : author$project$Types$fromMaybePoint(
+				A2(elm$core$Array$get, numberOfSmoothedPoints - 1, smoothedPoints));
+			var lastRawPoint = author$project$Types$fromMaybePoint(
+				A2(
+					elm$core$Array$get,
+					elm$core$Array$length(rawPoints) - 1,
+					rawPoints));
+			var _n0 = A3(elm$core$Tuple$mapBoth, elm$core$Basics$toFloat, elm$core$Basics$toFloat, previousSmoothedPoint);
+			var xSi_sub_1 = _n0.a;
+			var ySi_sub_1 = _n0.b;
+			var _n1 = A3(elm$core$Tuple$mapBoth, elm$core$Basics$toFloat, elm$core$Basics$toFloat, lastRawPoint);
+			var xRi = _n1.a;
+			var yRi = _n1.b;
+			var xSi = (sf * xSi_sub_1) + ((1 - sf) * xRi);
+			var ySi = (sf * ySi_sub_1) + ((1 - sf) * yRi);
+			return A2(
+				elm$core$Array$push,
+				A3(
+					elm$core$Tuple$mapBoth,
+					elm$core$Basics$round,
+					elm$core$Basics$round,
+					_Utils_Tuple2(xSi, ySi)),
+				smoothedPoints);
+		} else {
+			return A2(elm$core$Array$push, newPoint, smoothedPoints);
+		}
+	});
+var elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var author$project$DataManipulation$thinning = F3(
+	function (smoothedPoints, thinnedPoints, tf) {
+		var numberOfThinnedPoints = elm$core$Array$length(thinnedPoints);
+		var numberOfSmoothedPoints = elm$core$Array$length(smoothedPoints);
+		if (elm$core$Array$length(thinnedPoints) >= 1) {
+			var _n0 = author$project$Types$fromMaybePoint(
+				A2(elm$core$Array$get, numberOfThinnedPoints - 1, thinnedPoints));
+			var xTj_sub_1 = _n0.a;
+			var yTj_sub_1 = _n0.b;
+			var _n1 = author$project$Types$fromMaybePoint(
+				A2(elm$core$Array$get, numberOfSmoothedPoints - 1, smoothedPoints));
+			var xSi = _n1.a;
+			var ySi = _n1.b;
+			return ((_Utils_cmp(
+				elm$core$Basics$abs(xSi - xTj_sub_1),
+				tf) > -1) || (_Utils_cmp(
+				elm$core$Basics$abs(ySi - yTj_sub_1),
+				tf) > -1)) ? A2(
+				elm$core$Array$push,
+				_Utils_Tuple2(xSi, ySi),
+				thinnedPoints) : thinnedPoints;
+		} else {
+			return A2(
+				elm$core$Array$push,
+				author$project$Types$fromMaybePoint(
+					A2(elm$core$Array$get, numberOfSmoothedPoints - 1, smoothedPoints)),
+				thinnedPoints);
+		}
+	});
 var author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -4844,17 +6059,17 @@ var author$project$Main$update = F2(
 				var pos = msg.a;
 				var _n1 = model.currentlyDrawing;
 				if (_n1) {
-					var yPos = pos.y;
-					var xPos = pos.x;
-					var pathSoFar = model.path;
-					var pathNew = A2(
-						elm$core$List$cons,
-						_Utils_Tuple2(xPos, yPos),
-						pathSoFar);
+					var rawPointsSoFar = model.path;
+					var newPoint = _Utils_Tuple2(pos.x, pos.y);
+					var rawPointsNew = A2(elm$core$Array$push, newPoint, rawPointsSoFar);
+					var smoothedPath = A4(author$project$DataManipulation$smoothing, rawPointsNew, model.smoothedPath, model.smoothingFactor, newPoint);
+					var thinnedPath = A3(author$project$DataManipulation$thinning, smoothedPath, model.thinnedPath, model.thinningFactor);
+					var curvaturePath = A2(author$project$DataManipulation$getDirection, thinnedPath, model.curvePath);
+					var corners = A3(author$project$DataManipulation$detectCorners, thinnedPath, model.corners, model.cornerThreshold);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{path: pathNew, pointerPosition: pos}),
+							{corners: corners, curvePath: curvaturePath, path: rawPointsNew, pointerPosition: pos, smoothedPath: smoothedPath, thinnedPath: thinnedPath}),
 						elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(
@@ -4867,18 +6082,22 @@ var author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{currentlyDrawing: true, path: _List_Nil}),
+						{corners: elm$core$Array$empty, currentlyDrawing: true, curvePath: elm$core$Array$empty, path: elm$core$Array$empty, smoothedPath: elm$core$Array$empty, thinnedPath: elm$core$Array$empty}),
 					elm$core$Platform$Cmd$none);
 			default:
+				var _n2 = author$project$DataManipulation$getStartAndEndPosition(model.thinnedPath);
+				var startQuadrant = _n2.a;
+				var endQuadrant = _n2.b;
+				var symbol = {corners: model.corners, directions: model.curvePath, endQuadrant: endQuadrant, startQuadrant: startQuadrant};
+				var recognizedSymbol = author$project$DataManipulation$recognizeSymbol(symbol);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{currentlyDrawing: false}),
+						{currentlyDrawing: false, recognizedSymbol: recognizedSymbol}),
 					elm$core$Platform$Cmd$none);
 		}
 	});
-var author$project$Main$cHeight = 500;
-var author$project$Main$cWidth = 500;
+var author$project$Main$canvasSize = {height: 400, width: 300};
 var author$project$Main$DrawEnd = {$: 'DrawEnd'};
 var author$project$Main$DrawStart = {$: 'DrawStart'};
 var author$project$Main$UpdatePointerPosition = function (a) {
@@ -4886,21 +6105,19 @@ var author$project$Main$UpdatePointerPosition = function (a) {
 };
 var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$int = _Json_decodeInt;
-var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$map2 = _Json_map2;
+var author$project$Main$mouseCoord = A3(
+	elm$json$Json$Decode$map2,
+	author$project$Main$Position,
+	A2(elm$json$Json$Decode$field, 'offsetX', elm$json$Json$Decode$int),
+	A2(elm$json$Json$Decode$field, 'offsetY', elm$json$Json$Decode$int));
+var elm$json$Json$Decode$map = _Json_map1;
 var author$project$Main$offsetPosition = A2(
 	elm$json$Json$Decode$map,
 	function (msg) {
 		return _Utils_Tuple2(msg, true);
 	},
-	A2(
-		elm$json$Json$Decode$map,
-		author$project$Main$UpdatePointerPosition,
-		A3(
-			elm$json$Json$Decode$map2,
-			author$project$Main$Position,
-			A2(elm$json$Json$Decode$field, 'offsetX', elm$json$Json$Decode$int),
-			A2(elm$json$Json$Decode$field, 'offsetY', elm$json$Json$Decode$int))));
+	A2(elm$json$Json$Decode$map, author$project$Main$UpdatePointerPosition, author$project$Main$mouseCoord));
 var elm$core$Basics$identity = function (x) {
 	return x;
 };
@@ -4988,14 +6205,14 @@ var author$project$Main$drawingBox = F4(
 					[
 						vBox,
 						elm$svg$Svg$Attributes$width(
-						elm$core$String$fromInt(author$project$Main$cWidth) + 'px'),
-						elm$svg$Svg$Attributes$width(
-						elm$core$String$fromInt(author$project$Main$cHeight) + 'px'),
+						elm$core$String$fromInt(author$project$Main$canvasSize.width) + 'px'),
+						elm$svg$Svg$Attributes$height(
+						elm$core$String$fromInt(author$project$Main$canvasSize.height) + 'px'),
 						A2(elm$html$Html$Attributes$style, 'border', '5px solid grey'),
 						A2(elm$html$Html$Attributes$style, 'border-radius', '5px'),
-						A2(elm$html$Html$Events$stopPropagationOn, 'mousemove', author$project$Main$offsetPosition),
 						elm$html$Html$Events$onMouseDown(author$project$Main$DrawStart),
-						elm$html$Html$Events$onMouseUp(author$project$Main$DrawEnd)
+						elm$html$Html$Events$onMouseUp(author$project$Main$DrawEnd),
+						A2(elm$html$Html$Events$stopPropagationOn, 'mousemove', author$project$Main$offsetPosition)
 					]),
 				_List_fromArray(
 					[
@@ -5004,9 +6221,9 @@ var author$project$Main$drawingBox = F4(
 						_List_fromArray(
 							[
 								elm$svg$Svg$Attributes$width(
-								elm$core$String$fromInt(author$project$Main$cWidth)),
+								elm$core$String$fromInt(author$project$Main$canvasSize.width)),
 								elm$svg$Svg$Attributes$height(
-								elm$core$String$fromInt(author$project$Main$cHeight)),
+								elm$core$String$fromInt(author$project$Main$canvasSize.height)),
 								elm$svg$Svg$Attributes$fill('#fdf6e3'),
 								elm$svg$Svg$Attributes$x('0'),
 								elm$svg$Svg$Attributes$y('0')
@@ -5018,7 +6235,7 @@ var author$project$Main$drawingBox = F4(
 							[
 								elm$svg$Svg$Attributes$cx(mouseX),
 								elm$svg$Svg$Attributes$cy(mouseY),
-								elm$svg$Svg$Attributes$r('8'),
+								elm$svg$Svg$Attributes$r('10'),
 								elm$svg$Svg$Attributes$fill('#fd635e'),
 								elm$svg$Svg$Attributes$opacity('0.7')
 							]),
@@ -5026,85 +6243,15 @@ var author$project$Main$drawingBox = F4(
 						linesToDraw
 					])));
 	});
-var elm$core$String$fromFloat = _String_fromNumber;
 var elm$core$Tuple$second = function (_n0) {
 	var y = _n0.b;
 	return y;
 };
 var author$project$Main$pointToString = function (point) {
-	var y = elm$core$String$fromFloat(point.b);
-	var x = elm$core$String$fromFloat(point.a);
+	var y = elm$core$String$fromInt(point.b);
+	var x = elm$core$String$fromInt(point.a);
 	return x + (',' + y);
 };
-var elm$core$List$foldrHelper = F4(
-	function (fn, acc, ctr, ls) {
-		if (!ls.b) {
-			return acc;
-		} else {
-			var a = ls.a;
-			var r1 = ls.b;
-			if (!r1.b) {
-				return A2(fn, a, acc);
-			} else {
-				var b = r1.a;
-				var r2 = r1.b;
-				if (!r2.b) {
-					return A2(
-						fn,
-						a,
-						A2(fn, b, acc));
-				} else {
-					var c = r2.a;
-					var r3 = r2.b;
-					if (!r3.b) {
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(fn, c, acc)));
-					} else {
-						var d = r3.a;
-						var r4 = r3.b;
-						var res = (ctr > 500) ? A3(
-							elm$core$List$foldl,
-							fn,
-							acc,
-							elm$core$List$reverse(r4)) : A4(elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(
-									fn,
-									c,
-									A2(fn, d, res))));
-					}
-				}
-			}
-		}
-	});
-var elm$core$List$foldr = F3(
-	function (fn, acc, ls) {
-		return A4(elm$core$List$foldrHelper, fn, acc, 0, ls);
-	});
-var elm$core$List$map = F2(
-	function (f, xs) {
-		return A3(
-			elm$core$List$foldr,
-			F2(
-				function (x, acc) {
-					return A2(
-						elm$core$List$cons,
-						f(x),
-						acc);
-				}),
-			_List_Nil,
-			xs);
-	});
 var elm$svg$Svg$polyline = elm$svg$Svg$trustedNode('polyline');
 var elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
 var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
@@ -5113,7 +6260,10 @@ var author$project$Main$pathToSvg = function (points) {
 	var x = A2(
 		elm$core$String$join,
 		' ',
-		A2(elm$core$List$map, author$project$Main$pointToString, points));
+		A2(
+			elm$core$List$map,
+			author$project$Main$pointToString,
+			elm$core$Array$toList(points)));
 	var polyColor = 'grey';
 	return A2(
 		elm$svg$Svg$polyline,
@@ -5122,10 +6272,13 @@ var author$project$Main$pathToSvg = function (points) {
 				elm$svg$Svg$Attributes$points(x),
 				elm$svg$Svg$Attributes$fill('none'),
 				elm$svg$Svg$Attributes$stroke(polyColor),
-				elm$svg$Svg$Attributes$strokeWidth('2')
+				elm$svg$Svg$Attributes$strokeWidth('3')
 			]),
 		_List_Nil);
 };
+var elm$core$Debug$log = _Debug_log;
+var elm$core$Debug$toString = _Debug_toString;
+var elm$core$String$fromFloat = _String_fromNumber;
 var elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var mdgriffith$elm_ui$Internal$Model$Height = function (a) {
 	return {$: 'Height', a: a};
@@ -5277,7 +6430,6 @@ var elm$virtual_dom$VirtualDom$node = function (tag) {
 	return _VirtualDom_node(
 		_VirtualDom_noScript(tag));
 };
-var elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
 var mdgriffith$elm_ui$Internal$Flag$Flag = function (a) {
 	return {$: 'Flag', a: a};
 };
@@ -5293,7 +6445,6 @@ var mdgriffith$elm_ui$Internal$Flag$centerX = mdgriffith$elm_ui$Internal$Flag$fl
 var mdgriffith$elm_ui$Internal$Flag$centerY = mdgriffith$elm_ui$Internal$Flag$flag(43);
 var mdgriffith$elm_ui$Internal$Flag$heightBetween = mdgriffith$elm_ui$Internal$Flag$flag(45);
 var mdgriffith$elm_ui$Internal$Flag$heightFill = mdgriffith$elm_ui$Internal$Flag$flag(37);
-var elm$core$Bitwise$and = _Bitwise_and;
 var mdgriffith$elm_ui$Internal$Flag$present = F2(
 	function (myFlag, _n0) {
 		var fieldOne = _n0.a;
@@ -5503,7 +6654,6 @@ var mdgriffith$elm_ui$Internal$Model$lengthClassName = function (x) {
 			return 'max' + (elm$core$String$fromInt(max) + mdgriffith$elm_ui$Internal$Model$lengthClassName(len));
 	}
 };
-var elm$core$Basics$round = _Basics_round;
 var mdgriffith$elm_ui$Internal$Model$floatClass = function (x) {
 	return elm$core$String$fromInt(
 		elm$core$Basics$round(x * 255));
@@ -7860,13 +9010,6 @@ var elm$json$Json$Encode$object = function (pairs) {
 			_Json_emptyObject(_Utils_Tuple0),
 			pairs));
 };
-var elm$core$Basics$min = F2(
-	function (x, y) {
-		return (_Utils_cmp(x, y) < 0) ? x : y;
-	});
-var elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -8605,7 +9748,6 @@ var mdgriffith$elm_ui$Internal$Model$renderNullAdjustmentRule = F2(
 						]))
 				]));
 	});
-var elm$core$Basics$neq = _Utils_notEqual;
 var elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -8617,26 +9759,6 @@ var elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
-var elm$core$List$maximum = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(
-			A3(elm$core$List$foldl, elm$core$Basics$max, x, xs));
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
-};
-var elm$core$List$minimum = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(
-			A3(elm$core$List$foldl, elm$core$Basics$min, x, xs));
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
-};
 var mdgriffith$elm_ui$Internal$Model$adjust = F3(
 	function (size, height, vertical) {
 		return {height: height / size, size: size, vertical: vertical};
@@ -9740,7 +10862,6 @@ var mdgriffith$elm_ui$Internal$Model$renderWidth = function (w) {
 				A2(elm$core$List$cons, style, newStyle));
 	}
 };
-var elm$core$Basics$ge = _Utils_ge;
 var mdgriffith$elm_ui$Internal$Flag$borderWidth = mdgriffith$elm_ui$Internal$Flag$flag(27);
 var mdgriffith$elm_ui$Internal$Model$skippable = F2(
 	function (flag, style) {
@@ -10982,6 +12103,26 @@ var mdgriffith$elm_ui$Element$rgb = F3(
 	function (r, g, b) {
 		return A4(mdgriffith$elm_ui$Internal$Model$Rgba, r, g, b, 1);
 	});
+var mdgriffith$elm_ui$Internal$Model$AsRow = {$: 'AsRow'};
+var mdgriffith$elm_ui$Internal$Model$asRow = mdgriffith$elm_ui$Internal$Model$AsRow;
+var mdgriffith$elm_ui$Element$row = F2(
+	function (attrs, children) {
+		return A4(
+			mdgriffith$elm_ui$Internal$Model$element,
+			mdgriffith$elm_ui$Internal$Model$asRow,
+			mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$elm_ui$Internal$Model$htmlClass(mdgriffith$elm_ui$Internal$Style$classes.contentLeft + (' ' + mdgriffith$elm_ui$Internal$Style$classes.contentCenterY)),
+				A2(
+					elm$core$List$cons,
+					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$shrink),
+					A2(
+						elm$core$List$cons,
+						mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$shrink),
+						attrs))),
+			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
+	});
 var mdgriffith$elm_ui$Internal$Flag$spacing = mdgriffith$elm_ui$Internal$Flag$flag(3);
 var mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
 	function (a, b, c) {
@@ -11019,11 +12160,17 @@ var mdgriffith$elm_ui$Element$Background$color = function (clr) {
 };
 var author$project$Main$view = function (model) {
 	var vBox = elm$svg$Svg$Attributes$viewBox(
-		'0 0 ' + (elm$core$String$fromFloat(author$project$Main$cWidth) + (' ' + elm$core$String$fromFloat(author$project$Main$cHeight))));
+		'0 0 ' + (elm$core$String$fromFloat(author$project$Main$canvasSize.width) + (' ' + elm$core$String$fromFloat(author$project$Main$canvasSize.height))));
+	var thinnedLines = author$project$Main$pathToSvg(model.thinnedPath);
+	var smoothedLines = author$project$Main$pathToSvg(model.smoothedPath);
 	var mouseY = elm$core$String$fromInt(model.pointerPosition.y);
 	var mouseX = elm$core$String$fromInt(model.pointerPosition.x);
 	var linesToDraw = author$project$Main$pathToSvg(model.path);
-	return A2(
+	return A6(
+		elm$core$Debug$log,
+		model.recognizedSymbol,
+		elm$core$Debug$log,
+		elm$core$Debug$toString(model.curvePath),
 		mdgriffith$elm_ui$Element$layout,
 		_List_Nil,
 		A2(
@@ -11040,9 +12187,18 @@ var author$project$Main$view = function (model) {
 				[
 					mdgriffith$elm_ui$Element$text(
 					'Number of Points : ' + elm$core$String$fromInt(
-						elm$core$List$length(model.path))),
+						elm$core$Array$length(model.path))),
 					mdgriffith$elm_ui$Element$text('Current Coordinates: ' + ('x: ' + (mouseX + ('y: ' + mouseY)))),
-					A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, linesToDraw)
+					A2(
+					mdgriffith$elm_ui$Element$row,
+					_List_Nil,
+					_List_fromArray(
+						[
+							A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, linesToDraw),
+							A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, smoothedLines),
+							A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, thinnedLines)
+						])),
+					mdgriffith$elm_ui$Element$text(model.recognizedSymbol)
 				])));
 };
 var elm$browser$Browser$External = function (a) {

@@ -1,4 +1,4 @@
-module Types exposing (..)
+module Types exposing (Direction(..), Extremes, Point, Quadrant(..), Symbol, fromMaybeDirection, fromMaybeList, fromMaybeNumber, fromMaybePoint)
 
 import Array exposing (Array)
 
@@ -17,13 +17,15 @@ type alias Extremes =
     }
 
 
+
 -- Quadrants are the same as in Cartesian coord system
+
+
 type Quadrant
     = I
     | II
     | III
     | IV
-
 
 
 type Direction
@@ -42,13 +44,12 @@ type alias Symbol =
     }
 
 
-
-
 fromMaybeNumber : Maybe number -> number
 fromMaybeNumber number =
     case number of
         Just y ->
             y
+
         Nothing ->
             0
 
@@ -72,6 +73,7 @@ fromMaybeDirection direction =
         Nothing ->
             UNKNOWN
 
+
 fromMaybeList : Maybe (List a) -> List a
 fromMaybeList list =
     case list of
@@ -80,4 +82,3 @@ fromMaybeList list =
 
         Nothing ->
             []
-
