@@ -1,16 +1,15 @@
-module DataManipulation exposing (recognizeSymbol , curvature, fromMaybePoint, smoothing, thinning, detectCorners, getStartAndEndPosition)
+module DataManipulation exposing (recognizeSymbol , getDirection, smoothing, thinning, detectCorners, getStartAndEndPosition)
 
 -- Types
 
 import Array exposing (..)
---import Symbols exposing (..)
+import Symbols exposing (..)
 import Types exposing (..)
 
 
 -- Manipulations
 
 -- Smoothing
-
 smoothing : Array Point -> Array Point -> Float -> Point -> Array Point
 smoothing rawPoints smoothedPoints sf newPoint =
     let
@@ -126,12 +125,6 @@ getDirection thinnedPath directionPath =
     && numberOfDirections < 8
     && direction /= UNKNOWN then
 
-            deg =
-                convertFromCartesianToPolar xy_Tj xy_Tj_sub_1
-
-            direction =
-                convertFromPolarToDirection deg
-        in
         if Array.isEmpty directionPath then
             Array.push direction directionPath
 
@@ -188,17 +181,20 @@ With the added hysteresis zones of 16deg around (45, 135, 225, 315):
 -}
 convertFromPolarToDirection : Float -> Direction
 convertFromPolarToDirection deg =
-    if (degrees 45 <= deg) && (deg < degrees 135) then
+    if (degrees 53 <= deg) && (deg < degrees 137) then
         UP
 
-    else if (degrees 135 <= deg) && (deg < degrees 225) then
+    else if (degrees 143 <= deg) && (deg < degrees 217) then
         RIGHT
 
-    else if (degrees 225 <= deg) && (deg < degrees 315) then
+    else if (degrees 233 <= deg) && (deg < degrees 307) then
         DOWN
 
-    else
+    else if (degrees 323 <= deg) && (deg < 37) then
         LEFT
+
+    else
+        UNKNOWN
 
 
 -- Corners
@@ -340,21 +336,11 @@ getPositionQuadrant (x, y) extremes =
         else if x >= floor (extremes.right - halfWidth)
         && y >= floor (extremes.bottom - halfHeight)
             then IV
-    --
+
     --    else x > (extremes.right - (extremes.width / 2))
     --    && y < (extremes.bottom - (extremes.height / 2))
         else
             I
-
-
-
-fromMaybeNumber : Maybe number -> number
-fromMaybeNumber number =
-    case number of
-        Just y ->
-            y
-        Nothing ->
-            0
 
 
 recognizeSymbol : Symbol -> String
@@ -364,39 +350,17 @@ recognizeSymbol symbol =
     in
         case firstDirection of
             DOWN ->
-                "D"
+                recognizeSymbolDown symbol
 
             UP ->
-                "U"
+                recognizeSymbolUp symbol
 
             LEFT ->
-                "L"
+                recognizeSymbolLeft symbol
 
             RIGHT ->
-                "R"
+                recognizeSymbolRight symbol
 
             UNKNOWN ->
                 "Unknown"
 
-
-
-
-
-fromMaybePoint : Maybe Point -> Point
-fromMaybePoint x =
-    case x of
-        Just y ->
-            y
-
-        Nothing ->
-            ( 0, 0 )
-
-
-fromMaybeDirection : Maybe Direction -> Direction
-fromMaybeDirection direction =
-    case direction of
-        Just d ->
-            d
-
-        Nothing ->
-            UNKNOWN

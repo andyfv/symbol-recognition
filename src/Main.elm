@@ -135,7 +135,7 @@ update msg model =
                                 model.thinningFactor
 
                         curvaturePath =
-                            curvature thinnedPath model.curvePath
+                            getDirection thinnedPath model.curvePath
 
                         corners =
                             detectCorners
@@ -221,11 +221,11 @@ view model =
         thinnedLines =
             pathToSvg model.thinnedPath
     in
---    Debug.log (model.recognizedSymbol)
+    Debug.log (model.recognizedSymbol)
 --      Debug.log ("startCoord: " ++ Debug.toString model.startingCoordinates)
 --      Debug.log ("endCoord: " ++ Debug.toString model.endingCoordinates)
 --    Debug.log (Debug.toString model.corners)
---    Debug.log (Debug.toString model.curvePath)
+    Debug.log (Debug.toString model.curvePath)
 --    <|
         Element.layout
             []

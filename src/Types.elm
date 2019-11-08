@@ -42,3 +42,42 @@ type alias Symbol =
     }
 
 
+
+
+fromMaybeNumber : Maybe number -> number
+fromMaybeNumber number =
+    case number of
+        Just y ->
+            y
+        Nothing ->
+            0
+
+
+fromMaybePoint : Maybe Point -> Point
+fromMaybePoint x =
+    case x of
+        Just y ->
+            y
+
+        Nothing ->
+            ( 0, 0 )
+
+
+fromMaybeDirection : Maybe Direction -> Direction
+fromMaybeDirection direction =
+    case direction of
+        Just d ->
+            d
+
+        Nothing ->
+            UNKNOWN
+
+fromMaybeList : Maybe (List a) -> List a
+fromMaybeList list =
+    case list of
+        Just l ->
+            l
+
+        Nothing ->
+            []
+
