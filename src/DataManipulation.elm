@@ -1,4 +1,4 @@
-module DataManipulation exposing (detectCorners, getDirection, getStartAndEndPosition, recognizeSymbol, smoothing, thinning)
+module DataManipulation exposing (conditioningDirections, detectCorners, getDirections, getStartAndEndPosition, recognizeSymbol, smoothing, thinning)
 
 -- Types
 
@@ -113,8 +113,8 @@ thinning smoothedPoints thinnedPoints tf =
 -- Note: This also returns UNKNOWN if the direction is in the hysteresis zones
 
 
-getDirection : Array Point -> Array Direction -> Array Direction
-getDirection thinnedPath directionPath =
+getDirections : Array Point -> Array Direction -> Array Direction
+getDirections thinnedPath directionPath =
     let
         numberOfThinnedPoints =
             Array.length thinnedPath
@@ -135,26 +135,21 @@ getDirection thinnedPath directionPath =
             convertFromPolarToDirection deg
     in
     if
-        numberOfThinnedPoints
-            >= 2
-            && numberOfDirections
-            < 8
-            && direction
-            /= UNKNOWN
+        (numberOfThinnedPoints >= 2 )
+        && (numberOfDirections < 6)
+        && (direction /= DISCARDED)
     then
         if Array.isEmpty directionPath then
             Array.push direction directionPath
 
         else
-            let
-                lastDirection =
+            let lastDirection =
                     fromMaybeDirection <| Array.get (numberOfDirections - 1) directionPath
             in
             if lastDirection == direction then
                 directionPath
 
-            else
-                Array.push direction directionPath
+            else Array.push direction directionPath
 
     else
         directionPath
@@ -198,8 +193,6 @@ convertFromCartesianToPolar ( xTj, yTj ) ( xTj_sub_1, yTj_sub_1 ) =
        - LEFT : (323 <= deg < 53) -- Note: Reversed with RIGHT
        - RIGHT : (143 <= deg < 218) -- Note: Reversed with LEFT
 -}
-
-
 convertFromPolarToDirection : Float -> Direction
 convertFromPolarToDirection deg =
     if (degrees 53 <= deg) && (deg < degrees 137) then
@@ -215,7 +208,7 @@ convertFromPolarToDirection deg =
         LEFT
 
     else
-        UNKNOWN
+        DISCARDED
 
 
 
@@ -403,6 +396,7 @@ getStartAndEndPosition thinnedInput =
         endPointQuadrant =
             getPositionQuadrant endingPositon extremes
     in
+    Debug.log (Debug.toString (startPointQuadrant, endPointQuadrant))
     ( startPointQuadrant, endPointQuadrant )
 
 
@@ -449,7 +443,7 @@ recognizeSymbol : Symbol -> String
 recognizeSymbol symbol =
     let
         firstDirection =
-            fromMaybeDirection <| Array.get 0 symbol.directions
+            fromMaybeDirection <| List.head symbol.mainDirections
     in
     case firstDirection of
         DOWN ->
@@ -464,5 +458,15 @@ recognizeSymbol symbol =
         RIGHT ->
             recognizeSymbolRight symbol
 
-        UNKNOWN ->
-            "Unknown"
+        _ ->
+            "Not Recognized"
+
+
+conditioningDirections : Array Direction -> Array Direction
+conditioningDirections directions =
+    let directionLength = 6 - (Array.length directions)
+    in
+        if Array.length directions == 0 then
+            directions
+
+        else Array.append directions (Array.repeat directionLength EMPTY)

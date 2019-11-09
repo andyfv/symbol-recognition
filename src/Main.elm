@@ -1,20 +1,19 @@
 module Main exposing (main)
 
-import Array exposing (Array, fromList)
+import Array exposing (Array)
 import Browser
 import DataManipulation exposing (..)
-import Element as Element exposing (fill, rgb)
+import Element as Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
-import Html exposing (Html, div, text)
+import Element.Font as Font
+import Html exposing (Html)
 import Html.Attributes exposing (..)
 import Html.Events exposing (custom, on, onMouseDown, onMouseUp)
 import Json.Decode as Json exposing (..)
-import String exposing (fromInt)
 import Svg exposing (mpath, svg)
 import Svg.Attributes exposing (..)
 import Types exposing (..)
-
 
 
 -- MAIN
@@ -44,7 +43,7 @@ type alias Model =
     { path : Array Point
     , smoothedPath : Array Point
     , thinnedPath : Array Point
-    , curvePath : Array Direction
+    , directionsPath : Array Direction
     , corners : Array Point
     , currentlyDrawing : Bool
     , pointerPosition : Position
@@ -62,7 +61,7 @@ initialModel _ =
     ( { path = Array.empty
       , smoothedPath = Array.empty
       , thinnedPath = Array.empty
-      , curvePath = Array.empty
+      , directionsPath = Array.empty
       , corners = Array.empty
       , currentlyDrawing = False
       , pointerPosition = Position 0 0
@@ -134,8 +133,9 @@ update msg model =
                                 model.thinnedPath
                                 model.thinningFactor
 
-                        curvaturePath =
-                            getDirection thinnedPath model.curvePath
+                        directionsPath =
+                            getDirections thinnedPath model.directionsPath
+
 
                         corners =
                             detectCorners
@@ -148,7 +148,7 @@ update msg model =
                         , path = rawPointsNew
                         , smoothedPath = smoothedPath
                         , thinnedPath = thinnedPath
-                        , curvePath = curvaturePath
+                        , directionsPath = directionsPath
                         , corners = corners
                       }
                     , Cmd.none
@@ -163,7 +163,7 @@ update msg model =
                 , path = Array.empty
                 , smoothedPath = Array.empty
                 , thinnedPath = Array.empty
-                , curvePath = Array.empty
+                , directionsPath = Array.empty
                 , corners = Array.empty
               }
             , Cmd.none
@@ -174,9 +174,16 @@ update msg model =
                 ( startQuadrant, endQuadrant ) =
                     getStartAndEndPosition model.thinnedPath
 
+                conditionedDirections =
+                    conditioningDirections model.directionsPath
+
+                mainDirections = Array.toList <| Array.slice 0 4 conditionedDirections
+                secondaryDirection  = Array.toList <| Array.slice 4 6 conditionedDirections
+
                 symbol : Symbol
                 symbol =
-                    { directions = model.curvePath
+                    { mainDirections = mainDirections
+                    , secondaryDirections = secondaryDirection
                     , corners = model.corners
                     , startQuadrant = startQuadrant
                     , endQuadrant = endQuadrant
@@ -188,10 +195,10 @@ update msg model =
             ( { model
                 | currentlyDrawing = False
                 , recognizedSymbol = recognizedSymbol
+                , directionsPath = conditionedDirections
               }
             , Cmd.none
             )
-
 
 
 -- VIEW
@@ -222,12 +229,13 @@ view model =
         thinnedLines =
             pathToSvg model.thinnedPath
     in
-    Debug.log model.recognizedSymbol
-        --      Debug.log ("startCoord: " ++ Debug.toString model.startingCoordinates)
-        --      Debug.log ("endCoord: " ++ Debug.toString model.endingCoordinates)
+    Debug.log (Debug.toString model.directionsPath)
+--    Debug.log model.recognizedSymbol
+--              Debug.log ("startCoord: " ++ Debug.toString model.startingCoordinates)
+--              Debug.log ("endCoord: " ++ Debug.toString model.endingCoordinates)
         --    Debug.log (Debug.toString model.corners)
-        Debug.log
-        (Debug.toString model.curvePath)
+--        Debug.log
+--        (Debug.toString model.directionsPath)
         --    <|
         Element.layout
         []
@@ -236,23 +244,30 @@ view model =
             [ Background.color (rgb 253 246 227)
             , Element.width Element.fill
             , Element.height Element.fill
-            , Element.spacing 0
+            , Element.spacing 10
+            , Element.centerX
             ]
-            [ Element.text <|
-                "Number of Points : "
-                    ++ (String.fromInt <| Array.length model.path)
-            , Element.text <|
-                "Current Coordinates: "
-                    ++ "x: "
-                    ++ mouseX
-                    ++ "y: "
-                    ++ mouseY
-            , Element.row []
+            [ Element.paragraph []
+                [ Element.el [ Element.centerX , Font.bold ] (Element.text <| "Number of Points: " ++ (String.fromInt <| Array.length model.path))
+                , Element.el [Element.centerX , Font.bold] (Element.text <|
+                    "Current Coordinates: "
+                      ++ "x: "
+                      ++ mouseX
+                      ++ " y: "
+                      ++ mouseY)
+                ]
+            , Element.row [ Element.padding 20, Element.centerX, Element.spacing 10]
                 [ drawingBox vBox mouseX mouseY linesToDraw
                 , drawingBox vBox mouseX mouseY smoothedLines
                 , drawingBox vBox mouseX mouseY thinnedLines
                 ]
-            , Element.text model.recognizedSymbol
+            , Element.paragraph []
+                [ Element.el
+                    [ Element.centerX
+                    , Font.bold
+                    ]
+                    (Element.text <| "Symbol: " ++ model.recognizedSymbol)
+                ]
 
             --        , mouseCircle mouseX mouseY
             ]

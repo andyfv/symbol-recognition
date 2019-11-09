@@ -33,11 +33,13 @@ type Direction
     | DOWN
     | LEFT
     | RIGHT
-    | UNKNOWN
+    | DISCARDED
+    | EMPTY
 
 
 type alias Symbol =
-    { directions : Array Direction
+    { mainDirections : List Direction
+    , secondaryDirections : List Direction
     , corners : Array Point
     , startQuadrant : Quadrant
     , endQuadrant : Quadrant
@@ -71,7 +73,7 @@ fromMaybeDirection direction =
             d
 
         Nothing ->
-            UNKNOWN
+            DISCARDED
 
 
 fromMaybeList : Maybe (List a) -> List a
