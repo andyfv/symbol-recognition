@@ -4834,7 +4834,7 @@ var author$project$Main$initialModel = function (_n0) {
 			cornerThreshold: 110,
 			corners: elm$core$Array$empty,
 			currentlyDrawing: false,
-			curvePath: elm$core$Array$empty,
+			directionsPath: elm$core$Array$empty,
 			endingCoordinates: _Utils_Tuple2(0, 0),
 			path: elm$core$Array$empty,
 			pointerPosition: A2(author$project$Main$Position, 0, 0),
@@ -4843,9 +4843,211 @@ var author$project$Main$initialModel = function (_n0) {
 			smoothingFactor: 0.75,
 			startingCoordinates: _Utils_Tuple2(0, 0),
 			thinnedPath: elm$core$Array$empty,
-			thinningFactor: 3
+			thinningFactor: 2
 		},
 		elm$core$Platform$Cmd$none);
+};
+var author$project$Types$EMPTY = {$: 'EMPTY'};
+var elm$core$Elm$JsArray$appendN = _JsArray_appendN;
+var elm$core$Elm$JsArray$slice = _JsArray_slice;
+var elm$core$Array$appendHelpBuilder = F2(
+	function (tail, builder) {
+		var tailLen = elm$core$Elm$JsArray$length(tail);
+		var notAppended = (elm$core$Array$branchFactor - elm$core$Elm$JsArray$length(builder.tail)) - tailLen;
+		var appended = A3(elm$core$Elm$JsArray$appendN, elm$core$Array$branchFactor, builder.tail, tail);
+		return (notAppended < 0) ? {
+			nodeList: A2(
+				elm$core$List$cons,
+				elm$core$Array$Leaf(appended),
+				builder.nodeList),
+			nodeListSize: builder.nodeListSize + 1,
+			tail: A3(elm$core$Elm$JsArray$slice, notAppended, tailLen, tail)
+		} : ((!notAppended) ? {
+			nodeList: A2(
+				elm$core$List$cons,
+				elm$core$Array$Leaf(appended),
+				builder.nodeList),
+			nodeListSize: builder.nodeListSize + 1,
+			tail: elm$core$Elm$JsArray$empty
+		} : {nodeList: builder.nodeList, nodeListSize: builder.nodeListSize, tail: appended});
+	});
+var elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var elm$core$Array$bitMask = 4294967295 >>> (32 - elm$core$Array$shiftStep);
+var elm$core$Basics$ge = _Utils_ge;
+var elm$core$Bitwise$and = _Bitwise_and;
+var elm$core$Elm$JsArray$push = _JsArray_push;
+var elm$core$Elm$JsArray$singleton = _JsArray_singleton;
+var elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
+var elm$core$Array$insertTailInTree = F4(
+	function (shift, index, tail, tree) {
+		var pos = elm$core$Array$bitMask & (index >>> shift);
+		if (_Utils_cmp(
+			pos,
+			elm$core$Elm$JsArray$length(tree)) > -1) {
+			if (shift === 5) {
+				return A2(
+					elm$core$Elm$JsArray$push,
+					elm$core$Array$Leaf(tail),
+					tree);
+			} else {
+				var newSub = elm$core$Array$SubTree(
+					A4(elm$core$Array$insertTailInTree, shift - elm$core$Array$shiftStep, index, tail, elm$core$Elm$JsArray$empty));
+				return A2(elm$core$Elm$JsArray$push, newSub, tree);
+			}
+		} else {
+			var value = A2(elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (value.$ === 'SubTree') {
+				var subTree = value.a;
+				var newSub = elm$core$Array$SubTree(
+					A4(elm$core$Array$insertTailInTree, shift - elm$core$Array$shiftStep, index, tail, subTree));
+				return A3(elm$core$Elm$JsArray$unsafeSet, pos, newSub, tree);
+			} else {
+				var newSub = elm$core$Array$SubTree(
+					A4(
+						elm$core$Array$insertTailInTree,
+						shift - elm$core$Array$shiftStep,
+						index,
+						tail,
+						elm$core$Elm$JsArray$singleton(value)));
+				return A3(elm$core$Elm$JsArray$unsafeSet, pos, newSub, tree);
+			}
+		}
+	});
+var elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var elm$core$Array$unsafeReplaceTail = F2(
+	function (newTail, _n0) {
+		var len = _n0.a;
+		var startShift = _n0.b;
+		var tree = _n0.c;
+		var tail = _n0.d;
+		var originalTailLen = elm$core$Elm$JsArray$length(tail);
+		var newTailLen = elm$core$Elm$JsArray$length(newTail);
+		var newArrayLen = len + (newTailLen - originalTailLen);
+		if (_Utils_eq(newTailLen, elm$core$Array$branchFactor)) {
+			var overflow = _Utils_cmp(newArrayLen >>> elm$core$Array$shiftStep, 1 << startShift) > 0;
+			if (overflow) {
+				var newShift = startShift + elm$core$Array$shiftStep;
+				var newTree = A4(
+					elm$core$Array$insertTailInTree,
+					newShift,
+					len,
+					newTail,
+					elm$core$Elm$JsArray$singleton(
+						elm$core$Array$SubTree(tree)));
+				return A4(elm$core$Array$Array_elm_builtin, newArrayLen, newShift, newTree, elm$core$Elm$JsArray$empty);
+			} else {
+				return A4(
+					elm$core$Array$Array_elm_builtin,
+					newArrayLen,
+					startShift,
+					A4(elm$core$Array$insertTailInTree, startShift, len, newTail, tree),
+					elm$core$Elm$JsArray$empty);
+			}
+		} else {
+			return A4(elm$core$Array$Array_elm_builtin, newArrayLen, startShift, tree, newTail);
+		}
+	});
+var elm$core$Array$appendHelpTree = F2(
+	function (toAppend, array) {
+		var len = array.a;
+		var tree = array.c;
+		var tail = array.d;
+		var itemsToAppend = elm$core$Elm$JsArray$length(toAppend);
+		var notAppended = (elm$core$Array$branchFactor - elm$core$Elm$JsArray$length(tail)) - itemsToAppend;
+		var appended = A3(elm$core$Elm$JsArray$appendN, elm$core$Array$branchFactor, tail, toAppend);
+		var newArray = A2(elm$core$Array$unsafeReplaceTail, appended, array);
+		if (notAppended < 0) {
+			var nextTail = A3(elm$core$Elm$JsArray$slice, notAppended, itemsToAppend, toAppend);
+			return A2(elm$core$Array$unsafeReplaceTail, nextTail, newArray);
+		} else {
+			return newArray;
+		}
+	});
+var elm$core$Elm$JsArray$foldl = _JsArray_foldl;
+var elm$core$Array$builderFromArray = function (_n0) {
+	var len = _n0.a;
+	var tree = _n0.c;
+	var tail = _n0.d;
+	var helper = F2(
+		function (node, acc) {
+			if (node.$ === 'SubTree') {
+				var subTree = node.a;
+				return A3(elm$core$Elm$JsArray$foldl, helper, acc, subTree);
+			} else {
+				return A2(elm$core$List$cons, node, acc);
+			}
+		});
+	return {
+		nodeList: A3(elm$core$Elm$JsArray$foldl, helper, _List_Nil, tree),
+		nodeListSize: (len / elm$core$Array$branchFactor) | 0,
+		tail: tail
+	};
+};
+var elm$core$Array$append = F2(
+	function (a, _n0) {
+		var aTail = a.d;
+		var bLen = _n0.a;
+		var bTree = _n0.c;
+		var bTail = _n0.d;
+		if (_Utils_cmp(bLen, elm$core$Array$branchFactor * 4) < 1) {
+			var foldHelper = F2(
+				function (node, array) {
+					if (node.$ === 'SubTree') {
+						var tree = node.a;
+						return A3(elm$core$Elm$JsArray$foldl, foldHelper, array, tree);
+					} else {
+						var leaf = node.a;
+						return A2(elm$core$Array$appendHelpTree, leaf, array);
+					}
+				});
+			return A2(
+				elm$core$Array$appendHelpTree,
+				bTail,
+				A3(elm$core$Elm$JsArray$foldl, foldHelper, a, bTree));
+		} else {
+			var foldHelper = F2(
+				function (node, builder) {
+					if (node.$ === 'SubTree') {
+						var tree = node.a;
+						return A3(elm$core$Elm$JsArray$foldl, foldHelper, builder, tree);
+					} else {
+						var leaf = node.a;
+						return A2(elm$core$Array$appendHelpBuilder, leaf, builder);
+					}
+				});
+			return A2(
+				elm$core$Array$builderToArray,
+				true,
+				A2(
+					elm$core$Array$appendHelpBuilder,
+					bTail,
+					A3(
+						elm$core$Elm$JsArray$foldl,
+						foldHelper,
+						elm$core$Array$builderFromArray(a),
+						bTree)));
+		}
+	});
+var elm$core$Array$length = function (_n0) {
+	var len = _n0.a;
+	return len;
+};
+var elm$core$Array$repeat = F2(
+	function (n, e) {
+		return A2(
+			elm$core$Array$initialize,
+			n,
+			function (_n0) {
+				return e;
+			});
+	});
+var author$project$DataManipulation$conditioningDirections = function (directions) {
+	var directionLength = 6 - elm$core$Array$length(directions);
+	return (!elm$core$Array$length(directions)) ? directions : A2(
+		elm$core$Array$append,
+		directions,
+		A2(elm$core$Array$repeat, directionLength, author$project$Types$EMPTY));
 };
 var author$project$Types$fromMaybePoint = function (x) {
 	if (x.$ === 'Just') {
@@ -4855,10 +5057,6 @@ var author$project$Types$fromMaybePoint = function (x) {
 		return _Utils_Tuple2(0, 0);
 	}
 };
-var elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
-var elm$core$Array$bitMask = 4294967295 >>> (32 - elm$core$Array$shiftStep);
-var elm$core$Bitwise$and = _Bitwise_and;
-var elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
 var elm$core$Array$getHelp = F3(
 	function (shift, index, tree) {
 		getHelp:
@@ -4880,11 +5078,9 @@ var elm$core$Array$getHelp = F3(
 			}
 		}
 	});
-var elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
 var elm$core$Array$tailIndex = function (len) {
 	return (len >>> 5) << 5;
 };
-var elm$core$Basics$ge = _Utils_ge;
 var elm$core$Array$get = F2(
 	function (index, _n0) {
 		var len = _n0.a;
@@ -4902,10 +5098,6 @@ var author$project$DataManipulation$getPointReversed = F3(
 		return author$project$Types$fromMaybePoint(
 			A2(elm$core$Array$get, (arrayLength - 1) - position, array));
 	});
-var elm$core$Array$length = function (_n0) {
-	var len = _n0.a;
-	return len;
-};
 var elm$core$Basics$neq = _Utils_notEqual;
 var author$project$DataManipulation$checkForDuplicate = F2(
 	function (cornerPoints, newCorner) {
@@ -4943,77 +5135,6 @@ var author$project$DataManipulation$getVector = F2(
 		var x = xTj - xTj_sub_1;
 		return _Utils_Tuple2(x, y);
 	});
-var elm$core$Elm$JsArray$push = _JsArray_push;
-var elm$core$Elm$JsArray$singleton = _JsArray_singleton;
-var elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
-var elm$core$Array$insertTailInTree = F4(
-	function (shift, index, tail, tree) {
-		var pos = elm$core$Array$bitMask & (index >>> shift);
-		if (_Utils_cmp(
-			pos,
-			elm$core$Elm$JsArray$length(tree)) > -1) {
-			if (shift === 5) {
-				return A2(
-					elm$core$Elm$JsArray$push,
-					elm$core$Array$Leaf(tail),
-					tree);
-			} else {
-				var newSub = elm$core$Array$SubTree(
-					A4(elm$core$Array$insertTailInTree, shift - elm$core$Array$shiftStep, index, tail, elm$core$Elm$JsArray$empty));
-				return A2(elm$core$Elm$JsArray$push, newSub, tree);
-			}
-		} else {
-			var value = A2(elm$core$Elm$JsArray$unsafeGet, pos, tree);
-			if (value.$ === 'SubTree') {
-				var subTree = value.a;
-				var newSub = elm$core$Array$SubTree(
-					A4(elm$core$Array$insertTailInTree, shift - elm$core$Array$shiftStep, index, tail, subTree));
-				return A3(elm$core$Elm$JsArray$unsafeSet, pos, newSub, tree);
-			} else {
-				var newSub = elm$core$Array$SubTree(
-					A4(
-						elm$core$Array$insertTailInTree,
-						shift - elm$core$Array$shiftStep,
-						index,
-						tail,
-						elm$core$Elm$JsArray$singleton(value)));
-				return A3(elm$core$Elm$JsArray$unsafeSet, pos, newSub, tree);
-			}
-		}
-	});
-var elm$core$Array$unsafeReplaceTail = F2(
-	function (newTail, _n0) {
-		var len = _n0.a;
-		var startShift = _n0.b;
-		var tree = _n0.c;
-		var tail = _n0.d;
-		var originalTailLen = elm$core$Elm$JsArray$length(tail);
-		var newTailLen = elm$core$Elm$JsArray$length(newTail);
-		var newArrayLen = len + (newTailLen - originalTailLen);
-		if (_Utils_eq(newTailLen, elm$core$Array$branchFactor)) {
-			var overflow = _Utils_cmp(newArrayLen >>> elm$core$Array$shiftStep, 1 << startShift) > 0;
-			if (overflow) {
-				var newShift = startShift + elm$core$Array$shiftStep;
-				var newTree = A4(
-					elm$core$Array$insertTailInTree,
-					newShift,
-					len,
-					newTail,
-					elm$core$Elm$JsArray$singleton(
-						elm$core$Array$SubTree(tree)));
-				return A4(elm$core$Array$Array_elm_builtin, newArrayLen, newShift, newTree, elm$core$Elm$JsArray$empty);
-			} else {
-				return A4(
-					elm$core$Array$Array_elm_builtin,
-					newArrayLen,
-					startShift,
-					A4(elm$core$Array$insertTailInTree, startShift, len, newTail, tree),
-					elm$core$Elm$JsArray$empty);
-			}
-		} else {
-			return A4(elm$core$Array$Array_elm_builtin, newArrayLen, startShift, tree, newTail);
-		}
-	});
 var elm$core$Array$push = F2(
 	function (a, array) {
 		var tail = array.d;
@@ -5040,14 +5161,14 @@ var author$project$DataManipulation$detectCorners = F3(
 			var vec2 = A2(author$project$DataManipulation$getVector, xyTj_sub_1, xyTj_sub_2);
 			var vec1 = A2(author$project$DataManipulation$getVector, xyTj, xyTj_sub_1);
 			var angleBetweenVec3Vec4 = A2(author$project$DataManipulation$getAngleBetweenTwoVectors, vec3, vec4);
-			var angleBetweenVec1Vec3 = A2(author$project$DataManipulation$getAngleBetweenTwoVectors, vec1, vec3);
+			var angleBetweenVec1Vec4 = A2(author$project$DataManipulation$getAngleBetweenTwoVectors, vec1, vec4);
 			var angleBetweenVec1Vec2 = A2(author$project$DataManipulation$getAngleBetweenTwoVectors, vec1, vec2);
 			return ((_Utils_cmp(
 				angleBetweenVec1Vec2,
 				elm$core$Basics$degrees(45)) < 1) && ((_Utils_cmp(
 				angleBetweenVec3Vec4,
 				elm$core$Basics$degrees(45)) < 1) && ((_Utils_cmp(
-				angleBetweenVec1Vec3,
+				angleBetweenVec1Vec4,
 				elm$core$Basics$degrees(cornerThreshold)) < 1) && (!A2(author$project$DataManipulation$checkForDuplicate, cornersPoints, xyTj_sub_2))))) ? A2(elm$core$Array$push, xyTj_sub_2, cornersPoints) : cornersPoints;
 		} else {
 			return cornersPoints;
@@ -5063,44 +5184,46 @@ var author$project$DataManipulation$convertFromCartesianToPolar = F2(
 		var y = yTj_sub_1 - yTj;
 		var x = xTj_sub_1 - xTj;
 		var theta_rad = A2(elm$core$Basics$atan2, y, x);
-		var theta_degree = (theta_rad < 0) ? (theta_rad + (2 * elm$core$Basics$pi)) : theta_rad;
+		var theta_degree = (theta_rad <= 0) ? (theta_rad + (2 * elm$core$Basics$pi)) : theta_rad;
 		return theta_degree;
 	});
+var author$project$Types$DISCARDED = {$: 'DISCARDED'};
 var author$project$Types$DOWN = {$: 'DOWN'};
 var author$project$Types$LEFT = {$: 'LEFT'};
 var author$project$Types$RIGHT = {$: 'RIGHT'};
-var author$project$Types$UNKNOWN = {$: 'UNKNOWN'};
 var author$project$Types$UP = {$: 'UP'};
 var author$project$DataManipulation$convertFromPolarToDirection = function (deg) {
 	return ((_Utils_cmp(
 		elm$core$Basics$degrees(53),
 		deg) < 1) && (_Utils_cmp(
 		deg,
-		elm$core$Basics$degrees(137)) < 0)) ? author$project$Types$UP : (((_Utils_cmp(
+		elm$core$Basics$degrees(137)) < 1)) ? author$project$Types$UP : (((_Utils_cmp(
 		elm$core$Basics$degrees(143),
 		deg) < 1) && (_Utils_cmp(
 		deg,
-		elm$core$Basics$degrees(217)) < 0)) ? author$project$Types$RIGHT : (((_Utils_cmp(
+		elm$core$Basics$degrees(217)) < 1)) ? author$project$Types$RIGHT : (((_Utils_cmp(
 		elm$core$Basics$degrees(233),
 		deg) < 1) && (_Utils_cmp(
 		deg,
-		elm$core$Basics$degrees(307)) < 0)) ? author$project$Types$DOWN : (((_Utils_cmp(
+		elm$core$Basics$degrees(307)) < 1)) ? author$project$Types$DOWN : (((_Utils_cmp(
 		elm$core$Basics$degrees(323),
-		deg) < 1) && (deg < 37)) ? author$project$Types$LEFT : author$project$Types$UNKNOWN)));
+		deg) < 1) || (_Utils_cmp(
+		deg,
+		elm$core$Basics$degrees(37)) < 1)) ? author$project$Types$LEFT : author$project$Types$DISCARDED)));
 };
 var author$project$Types$fromMaybeDirection = function (direction) {
 	if (direction.$ === 'Just') {
 		var d = direction.a;
 		return d;
 	} else {
-		return author$project$Types$UNKNOWN;
+		return author$project$Types$DISCARDED;
 	}
 };
 var elm$core$Array$isEmpty = function (_n0) {
 	var len = _n0.a;
 	return !len;
 };
-var author$project$DataManipulation$getDirection = F2(
+var author$project$DataManipulation$getDirections = F2(
 	function (thinnedPath, directionPath) {
 		var numberOfThinnedPoints = elm$core$Array$length(thinnedPath);
 		var xy_Tj = author$project$Types$fromMaybePoint(
@@ -5110,7 +5233,7 @@ var author$project$DataManipulation$getDirection = F2(
 		var numberOfDirections = elm$core$Array$length(directionPath);
 		var deg = A2(author$project$DataManipulation$convertFromCartesianToPolar, xy_Tj, xy_Tj_sub_1);
 		var direction = author$project$DataManipulation$convertFromPolarToDirection(deg);
-		if ((numberOfThinnedPoints >= 2) && ((numberOfDirections < 8) && (!_Utils_eq(direction, author$project$Types$UNKNOWN)))) {
+		if ((numberOfThinnedPoints >= 2) && ((numberOfDirections < 6) && (!_Utils_eq(direction, author$project$Types$DISCARDED)))) {
 			if (elm$core$Array$isEmpty(directionPath)) {
 				return A2(elm$core$Array$push, direction, directionPath);
 			} else {
@@ -5154,6 +5277,8 @@ var author$project$Types$fromMaybeNumber = function (number) {
 		return 0;
 	}
 };
+var elm$core$Debug$log = _Debug_log;
+var elm$core$Debug$toString = _Debug_toString;
 var elm$core$List$foldrHelper = F4(
 	function (fn, acc, ctr, ls) {
 		if (!ls.b) {
@@ -5283,411 +5408,1989 @@ var author$project$DataManipulation$getStartAndEndPosition = function (thinnedIn
 	var extremes = {bottom: bottom, height: height, left: left, right: right, top: top, width: width};
 	var endPointQuadrant = A2(author$project$DataManipulation$getPositionQuadrant, endingPositon, extremes);
 	var startPointQuadrant = A2(author$project$DataManipulation$getPositionQuadrant, startingPositon, extremes);
-	return _Utils_Tuple2(startPointQuadrant, endPointQuadrant);
+	return A2(
+		elm$core$Debug$log,
+		elm$core$Debug$toString(
+			_Utils_Tuple2(startPointQuadrant, endPointQuadrant)),
+		_Utils_Tuple2(startPointQuadrant, endPointQuadrant));
 };
-var author$project$Symbols$recognizeSymbolDown = function (symbol) {
-	var pattern = elm$core$Array$toList(symbol.directions);
-	_n0$12:
+var author$project$Symbols$rec_DRUD = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	var numberOfCorners = elm$core$Array$length(symbol.corners);
+	_n0$6:
 	while (true) {
-		if (pattern.b && (pattern.a.$ === 'DOWN')) {
-			if (!pattern.b.b) {
-				var _n1 = pattern.a;
-				return 'I';
-			} else {
-				if (!pattern.b.b.b) {
-					if (pattern.b.a.$ === 'RIGHT') {
-						var _n9 = pattern.a;
-						var _n10 = pattern.b;
-						var _n11 = _n10.a;
-						return 'L';
+		if ((secondaryDirections.b && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.b.a.$) {
+				case 'DOWN':
+					if (secondaryDirections.a.$ === 'RIGHT') {
+						var _n11 = secondaryDirections.a;
+						var _n12 = secondaryDirections.b;
+						var _n13 = _n12.a;
+						return 'K';
 					} else {
-						break _n0$12;
+						break _n0$6;
 					}
-				} else {
-					if (!pattern.b.b.b.b) {
-						if ((pattern.b.a.$ === 'UP') && (pattern.b.b.a.$ === 'DOWN')) {
-							var _n41 = pattern.a;
-							var _n42 = pattern.b;
-							var _n43 = _n42.a;
-							var _n44 = _n42.b;
-							var _n45 = _n44.a;
-							return 'K';
-						} else {
-							break _n0$12;
-						}
-					} else {
-						if (pattern.b.b.b.b.b) {
-							if (pattern.b.b.b.b.b.b) {
-								if (!pattern.b.b.b.b.b.b.b) {
-									switch (pattern.b.a.$) {
-										case 'RIGHT':
-											if ((((pattern.b.b.a.$ === 'UP') && (pattern.b.b.b.a.$ === 'DOWN')) && (pattern.b.b.b.b.a.$ === 'RIGHT')) && (pattern.b.b.b.b.b.a.$ === 'LEFT')) {
-												var _n21 = pattern.a;
-												var _n22 = pattern.b;
-												var _n23 = _n22.a;
-												var _n24 = _n22.b;
-												var _n25 = _n24.a;
-												var _n26 = _n24.b;
-												var _n27 = _n26.a;
-												var _n28 = _n26.b;
-												var _n29 = _n28.a;
-												var _n30 = _n28.b;
-												var _n31 = _n30.a;
-												return 'Y';
-											} else {
-												break _n0$12;
-											}
-										case 'UP':
-											if ((((pattern.b.b.a.$ === 'DOWN') && (pattern.b.b.b.a.$ === 'LEFT')) && (pattern.b.b.b.b.a.$ === 'DOWN')) && (pattern.b.b.b.b.b.a.$ === 'RIGHT')) {
-												var _n46 = pattern.a;
-												var _n47 = pattern.b;
-												var _n48 = _n47.a;
-												var _n49 = _n47.b;
-												var _n50 = _n49.a;
-												var _n51 = _n49.b;
-												var _n52 = _n51.a;
-												var _n53 = _n51.b;
-												var _n54 = _n53.a;
-												var _n55 = _n53.b;
-												var _n56 = _n55.a;
-												return 'K';
-											} else {
-												break _n0$12;
-											}
-										default:
-											break _n0$12;
-									}
-								} else {
-									break _n0$12;
-								}
-							} else {
-								switch (pattern.b.a.$) {
-									case 'RIGHT':
-										if (((pattern.b.b.a.$ === 'UP') && (pattern.b.b.b.a.$ === 'DOWN')) && (pattern.b.b.b.b.a.$ === 'LEFT')) {
-											var _n12 = pattern.a;
-											var _n13 = pattern.b;
-											var _n14 = _n13.a;
-											var _n15 = _n13.b;
-											var _n16 = _n15.a;
-											var _n17 = _n15.b;
-											var _n18 = _n17.a;
-											var _n19 = _n17.b;
-											var _n20 = _n19.a;
-											return 'Y';
-										} else {
-											break _n0$12;
-										}
-									case 'UP':
-										switch (pattern.b.b.a.$) {
-											case 'RIGHT':
-												if ((pattern.b.b.b.a.$ === 'UP') && (pattern.b.b.b.b.a.$ === 'DOWN')) {
-													var _n32 = pattern.a;
-													var _n33 = pattern.b;
-													var _n34 = _n33.a;
-													var _n35 = _n33.b;
-													var _n36 = _n35.a;
-													var _n37 = _n35.b;
-													var _n38 = _n37.a;
-													var _n39 = _n37.b;
-													var _n40 = _n39.a;
-													return 'H';
-												} else {
-													break _n0$12;
-												}
-											case 'LEFT':
-												if ((pattern.b.b.b.a.$ === 'DOWN') && (pattern.b.b.b.b.a.$ === 'RIGHT')) {
-													var _n57 = pattern.a;
-													var _n58 = pattern.b;
-													var _n59 = _n58.a;
-													var _n60 = _n58.b;
-													var _n61 = _n60.a;
-													var _n62 = _n60.b;
-													var _n63 = _n62.a;
-													var _n64 = _n62.b;
-													var _n65 = _n64.a;
-													return 'K';
-												} else {
-													break _n0$12;
-												}
-											default:
-												break _n0$12;
-										}
-									default:
-										break _n0$12;
-								}
-							}
-						} else {
-							switch (pattern.b.a.$) {
-								case 'UP':
-									if (pattern.b.b.a.$ === 'DOWN') {
-										switch (pattern.b.b.b.a.$) {
-											case 'RIGHT':
-												var _n66 = pattern.a;
-												var _n67 = pattern.b;
-												var _n68 = _n67.a;
-												var _n69 = _n67.b;
-												var _n70 = _n69.a;
-												var _n71 = _n69.b;
-												var _n72 = _n71.a;
-												return 'K';
-											case 'UP':
-												var _n73 = pattern.a;
-												var _n74 = pattern.b;
-												var _n75 = _n74.a;
-												var _n76 = _n74.b;
-												var _n77 = _n76.a;
-												var _n78 = _n76.b;
-												var _n79 = _n78.a;
-												return 'W';
-											default:
-												break _n0$12;
-										}
-									} else {
-										break _n0$12;
-									}
-								case 'RIGHT':
-									if (pattern.b.b.a.$ === 'UP') {
-										switch (pattern.b.b.b.a.$) {
-											case 'LEFT':
-												var _n2 = pattern.a;
-												var _n3 = pattern.b;
-												var _n4 = _n3.a;
-												var _n5 = _n3.b;
-												var _n6 = _n5.a;
-												var _n7 = _n5.b;
-												var _n8 = _n7.a;
-												return 'D';
-											case 'DOWN':
-												var _n80 = pattern.a;
-												var _n81 = pattern.b;
-												var _n82 = _n81.a;
-												var _n83 = _n81.b;
-												var _n84 = _n83.a;
-												var _n85 = _n83.b;
-												var _n86 = _n85.a;
-												return '4';
-											default:
-												break _n0$12;
-										}
-									} else {
-										break _n0$12;
-									}
+				case 'UP':
+					switch (secondaryDirections.a.$) {
+						case 'LEFT':
+							var _n8 = secondaryDirections.a;
+							var _n9 = secondaryDirections.b;
+							var _n10 = _n9.a;
+							return 'Y';
+						case 'RIGHT':
+							var _n14 = secondaryDirections.a;
+							var _n15 = secondaryDirections.b;
+							var _n16 = _n15.a;
+							return 'W';
+						default:
+							break _n0$6;
+					}
+				case 'EMPTY':
+					switch (secondaryDirections.a.$) {
+						case 'EMPTY':
+							var _n1 = secondaryDirections.a;
+							var _n2 = secondaryDirections.b;
+							var _n3 = _n2.a;
+							switch (numberOfCorners) {
+								case 1:
+									return 'U';
+								case 2:
+									return '4';
+								case 3:
+									return '4';
 								default:
-									break _n0$12;
+									return 'Not recognized';
 							}
-						}
+						case 'LEFT':
+							var _n5 = secondaryDirections.a;
+							var _n6 = secondaryDirections.b;
+							var _n7 = _n6.a;
+							return 'Y';
+						case 'UP':
+							var _n17 = secondaryDirections.a;
+							var _n18 = secondaryDirections.b;
+							var _n19 = _n18.a;
+							return 'W';
+						default:
+							break _n0$6;
 					}
-				}
+				default:
+					break _n0$6;
 			}
 		} else {
-			break _n0$12;
+			break _n0$6;
 		}
 	}
-	return 'Unknown';
+	return 'Not recognized';
 };
-var author$project$Symbols$recognizeSymbolLeft = function (symbol) {
-	var pattern = elm$core$Array$toList(symbol.directions);
-	_n0$10:
+var author$project$Symbols$rec_DRUE = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	var numberOfCorners = elm$core$Array$length(symbol.corners);
+	_n0$3:
 	while (true) {
-		if (((pattern.b && (pattern.a.$ === 'LEFT')) && pattern.b.b) && (pattern.b.a.$ === 'DOWN')) {
-			if (!pattern.b.b.b) {
-				var _n1 = pattern.a;
-				var _n2 = pattern.b;
-				var _n3 = _n2.a;
-				return 'F';
-			} else {
-				if (((pattern.b.b.a.$ === 'RIGHT') && pattern.b.b.b.b) && pattern.b.b.b.b.b) {
-					if (!pattern.b.b.b.b.b.b) {
-						if (pattern.b.b.b.b.a.$ === 'LEFT') {
-							switch (pattern.b.b.b.a.$) {
-								case 'UP':
-									var _n15 = pattern.a;
-									var _n16 = pattern.b;
-									var _n17 = _n16.a;
-									var _n18 = _n16.b;
-									var _n19 = _n18.a;
-									var _n20 = _n18.b;
-									var _n21 = _n20.a;
-									var _n22 = _n20.b;
-									var _n23 = _n22.a;
-									return 'G';
-								case 'DOWN':
-									var _n24 = pattern.a;
-									var _n25 = pattern.b;
-									var _n26 = _n25.a;
-									var _n27 = _n25.b;
-									var _n28 = _n27.a;
-									var _n29 = _n27.b;
-									var _n30 = _n29.a;
-									var _n31 = _n29.b;
-									var _n32 = _n31.a;
-									return 'S';
-								default:
-									break _n0$10;
-							}
-						} else {
-							break _n0$10;
+		switch (quadrantStartToEnd.a.$) {
+			case 'III':
+				if (quadrantStartToEnd.b.$ === 'IV') {
+					var _n3 = quadrantStartToEnd.a;
+					var _n4 = quadrantStartToEnd.b;
+					return 'U';
+				} else {
+					break _n0$3;
+				}
+			case 'II':
+				switch (quadrantStartToEnd.b.$) {
+					case 'II':
+						var _n1 = quadrantStartToEnd.a;
+						var _n2 = quadrantStartToEnd.b;
+						return 'D';
+					case 'I':
+						var _n5 = quadrantStartToEnd.a;
+						var _n6 = quadrantStartToEnd.b;
+						return 'V';
+					default:
+						break _n0$3;
+				}
+			default:
+				break _n0$3;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_DRUL = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$2:
+	while (true) {
+		if (((secondaryDirections.b && secondaryDirections.b.b) && (secondaryDirections.b.a.$ === 'EMPTY')) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.a.$) {
+				case 'DOWN':
+					var _n1 = secondaryDirections.a;
+					var _n2 = secondaryDirections.b;
+					var _n3 = _n2.a;
+					return '4';
+				case 'EMPTY':
+					var _n4 = secondaryDirections.a;
+					var _n5 = secondaryDirections.b;
+					var _n6 = _n5.a;
+					_n7$3:
+					while (true) {
+						switch (quadrantStartToEnd.a.$) {
+							case 'II':
+								switch (quadrantStartToEnd.b.$) {
+									case 'II':
+										var _n8 = quadrantStartToEnd.a;
+										var _n9 = quadrantStartToEnd.b;
+										return 'D';
+									case 'I':
+										var _n10 = quadrantStartToEnd.a;
+										var _n11 = quadrantStartToEnd.b;
+										return 'X';
+									default:
+										break _n7$3;
+								}
+							case 'I':
+								if (quadrantStartToEnd.b.$ === 'II') {
+									var _n12 = quadrantStartToEnd.a;
+									var _n13 = quadrantStartToEnd.b;
+									return 'X';
+								} else {
+									break _n7$3;
+								}
+							default:
+								break _n7$3;
 						}
+					}
+					return 'Not recognized';
+				default:
+					break _n0$2;
+			}
+		} else {
+			break _n0$2;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_DRUR = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$8:
+	while (true) {
+		if ((secondaryDirections.b && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.a.$) {
+				case 'RIGHT':
+					if (secondaryDirections.b.a.$ === 'DOWN') {
+						var _n9 = secondaryDirections.a;
+						var _n10 = secondaryDirections.b;
+						var _n11 = _n10.a;
+						return 'H';
 					} else {
-						if (pattern.b.b.b.b.b.b.b) {
-							if (((pattern.b.b.b.a.$ === 'DOWN') && (pattern.b.b.b.b.a.$ === 'LEFT')) && (pattern.b.b.b.b.b.a.$ === 'UP')) {
-								if (!pattern.b.b.b.b.b.b.b.b) {
-									if (pattern.b.b.b.b.b.b.a.$ === 'LEFT') {
-										var _n61 = pattern.a;
-										var _n62 = pattern.b;
-										var _n63 = _n62.a;
-										var _n64 = _n62.b;
-										var _n65 = _n64.a;
-										var _n66 = _n64.b;
+						break _n0$8;
+					}
+				case 'UP':
+					switch (secondaryDirections.b.a.$) {
+						case 'RIGHT':
+							var _n1 = secondaryDirections.a;
+							var _n2 = secondaryDirections.b;
+							var _n3 = _n2.a;
+							_n4$2:
+							while (true) {
+								if (quadrantStartToEnd.a.$ === 'II') {
+									switch (quadrantStartToEnd.b.$) {
+										case 'III':
+											var _n5 = quadrantStartToEnd.a;
+											var _n6 = quadrantStartToEnd.b;
+											return 'Y';
+										case 'II':
+											var _n7 = quadrantStartToEnd.a;
+											var _n8 = quadrantStartToEnd.b;
+											return 'D';
+										default:
+											break _n4$2;
+									}
+								} else {
+									break _n4$2;
+								}
+							}
+							return 'Not recognized';
+						case 'LEFT':
+							var _n15 = secondaryDirections.a;
+							var _n16 = secondaryDirections.b;
+							var _n17 = _n16.a;
+							return 'D';
+						case 'EMPTY':
+							var _n18 = secondaryDirections.a;
+							var _n19 = secondaryDirections.b;
+							var _n20 = _n19.a;
+							return 'X';
+						case 'DOWN':
+							var _n21 = secondaryDirections.a;
+							var _n22 = secondaryDirections.b;
+							var _n23 = _n22.a;
+							_n24$3:
+							while (true) {
+								switch (quadrantStartToEnd.a.$) {
+									case 'II':
+										switch (quadrantStartToEnd.b.$) {
+											case 'I':
+												var _n25 = quadrantStartToEnd.a;
+												var _n26 = quadrantStartToEnd.b;
+												return 'W';
+											case 'IV':
+												var _n27 = quadrantStartToEnd.a;
+												var _n28 = quadrantStartToEnd.b;
+												return '4';
+											default:
+												break _n24$3;
+										}
+									case 'I':
+										if (quadrantStartToEnd.b.$ === 'IV') {
+											var _n29 = quadrantStartToEnd.a;
+											var _n30 = quadrantStartToEnd.b;
+											return '4';
+										} else {
+											break _n24$3;
+										}
+									default:
+										break _n24$3;
+								}
+							}
+							return 'Not recognized';
+						default:
+							break _n0$8;
+					}
+				case 'DOWN':
+					switch (secondaryDirections.b.a.$) {
+						case 'LEFT':
+							var _n12 = secondaryDirections.a;
+							var _n13 = secondaryDirections.b;
+							var _n14 = _n13.a;
+							return 'Y';
+						case 'UP':
+							var _n31 = secondaryDirections.a;
+							var _n32 = secondaryDirections.b;
+							var _n33 = _n32.a;
+							return 'W';
+						case 'RIGHT':
+							var _n34 = secondaryDirections.a;
+							var _n35 = secondaryDirections.b;
+							var _n36 = _n35.a;
+							_n37$2:
+							while (true) {
+								if (quadrantStartToEnd.a.$ === 'II') {
+									switch (quadrantStartToEnd.b.$) {
+										case 'I':
+											var _n38 = quadrantStartToEnd.a;
+											var _n39 = quadrantStartToEnd.b;
+											return 'W';
+										case 'IV':
+											var _n40 = quadrantStartToEnd.a;
+											var _n41 = quadrantStartToEnd.b;
+											return 'K';
+										default:
+											break _n37$2;
+									}
+								} else {
+									break _n37$2;
+								}
+							}
+							return 'Not recognized';
+						default:
+							break _n0$8;
+					}
+				default:
+					break _n0$8;
+			}
+		} else {
+			break _n0$8;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_DUDR = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$2:
+	while (true) {
+		if (((secondaryDirections.b && secondaryDirections.b.b) && (secondaryDirections.b.a.$ === 'EMPTY')) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.a.$) {
+				case 'DOWN':
+					var _n1 = secondaryDirections.a;
+					var _n2 = secondaryDirections.b;
+					var _n3 = _n2.a;
+					return 'K';
+				case 'UP':
+					var _n4 = secondaryDirections.a;
+					var _n5 = secondaryDirections.b;
+					var _n6 = _n5.a;
+					return 'K';
+				default:
+					break _n0$2;
+			}
+		} else {
+			break _n0$2;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_DURD = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$2:
+	while (true) {
+		if ((secondaryDirections.b && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.a.$) {
+				case 'RIGHT':
+					if (secondaryDirections.b.a.$ === 'UP') {
+						var _n1 = secondaryDirections.a;
+						var _n2 = secondaryDirections.b;
+						var _n3 = _n2.a;
+						return 'W';
+					} else {
+						break _n0$2;
+					}
+				case 'DOWN':
+					if (secondaryDirections.b.a.$ === 'RIGHT') {
+						var _n4 = secondaryDirections.a;
+						var _n5 = secondaryDirections.b;
+						var _n6 = _n5.a;
+						return 'K';
+					} else {
+						break _n0$2;
+					}
+				default:
+					break _n0$2;
+			}
+		} else {
+			break _n0$2;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_DURU = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	var numberOfCorners = elm$core$Array$length(symbol.corners);
+	_n0$4:
+	while (true) {
+		if ((secondaryDirections.b && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.a.$) {
+				case 'RIGHT':
+					switch (secondaryDirections.b.a.$) {
+						case 'UP':
+							var _n1 = secondaryDirections.a;
+							var _n2 = secondaryDirections.b;
+							var _n3 = _n2.a;
+							switch (numberOfCorners) {
+								case 3:
+									return 'K';
+								case 4:
+									return 'H';
+								default:
+									return 'Not recognized';
+							}
+						case 'DOWN':
+							var _n8 = secondaryDirections.a;
+							var _n9 = secondaryDirections.b;
+							var _n10 = _n9.a;
+							return 'K';
+						default:
+							break _n0$4;
+					}
+				case 'DOWN':
+					switch (secondaryDirections.b.a.$) {
+						case 'UP':
+							var _n5 = secondaryDirections.a;
+							var _n6 = secondaryDirections.b;
+							var _n7 = _n6.a;
+							return 'K';
+						case 'RIGHT':
+							var _n11 = secondaryDirections.a;
+							var _n12 = secondaryDirections.b;
+							var _n13 = _n12.a;
+							return 'K';
+						default:
+							break _n0$4;
+					}
+				default:
+					break _n0$4;
+			}
+		} else {
+			break _n0$4;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$recognizeSymbolDOWN = function (symbol) {
+	var mainDirections = symbol.mainDirections;
+	_n0$16:
+	while (true) {
+		if (mainDirections.b && (mainDirections.a.$ === 'DOWN')) {
+			if (!mainDirections.b.b) {
+				var _n1 = mainDirections.a;
+				return 'I';
+			} else {
+				if ((mainDirections.b.b.b && mainDirections.b.b.b.b) && (!mainDirections.b.b.b.b.b)) {
+					switch (mainDirections.b.a.$) {
+						case 'UP':
+							switch (mainDirections.b.b.a.$) {
+								case 'EMPTY':
+									if (mainDirections.b.b.b.a.$ === 'EMPTY') {
+										var _n2 = mainDirections.a;
+										var _n3 = mainDirections.b;
+										var _n4 = _n3.a;
+										var _n5 = _n3.b;
+										var _n6 = _n5.a;
+										var _n7 = _n5.b;
+										var _n8 = _n7.a;
+										return 'V';
+									} else {
+										break _n0$16;
+									}
+								case 'DOWN':
+									if (mainDirections.b.b.b.a.$ === 'RIGHT') {
+										var _n51 = mainDirections.a;
+										var _n52 = mainDirections.b;
+										var _n53 = _n52.a;
+										var _n54 = _n52.b;
+										var _n55 = _n54.a;
+										var _n56 = _n54.b;
+										var _n57 = _n56.a;
+										return author$project$Symbols$rec_DUDR(symbol);
+									} else {
+										break _n0$16;
+									}
+								case 'RIGHT':
+									switch (mainDirections.b.b.b.a.$) {
+										case 'UP':
+											var _n44 = mainDirections.a;
+											var _n45 = mainDirections.b;
+											var _n46 = _n45.a;
+											var _n47 = _n45.b;
+											var _n48 = _n47.a;
+											var _n49 = _n47.b;
+											var _n50 = _n49.a;
+											return author$project$Symbols$rec_DURU(symbol);
+										case 'DOWN':
+											var _n58 = mainDirections.a;
+											var _n59 = mainDirections.b;
+											var _n60 = _n59.a;
+											var _n61 = _n59.b;
+											var _n62 = _n61.a;
+											var _n63 = _n61.b;
+											var _n64 = _n63.a;
+											return author$project$Symbols$rec_DURD(symbol);
+										default:
+											break _n0$16;
+									}
+								case 'LEFT':
+									if (mainDirections.b.b.b.a.$ === 'RIGHT') {
+										var _n65 = mainDirections.a;
+										var _n66 = mainDirections.b;
 										var _n67 = _n66.a;
 										var _n68 = _n66.b;
 										var _n69 = _n68.a;
 										var _n70 = _n68.b;
 										var _n71 = _n70.a;
-										var _n72 = _n70.b;
-										var _n73 = _n72.a;
-										return '8';
+										return 'K';
 									} else {
-										break _n0$10;
+										break _n0$16;
 									}
-								} else {
-									if ((pattern.b.b.b.b.b.b.a.$ === 'RIGHT') && (pattern.b.b.b.b.b.b.b.a.$ === 'UP')) {
-										if (pattern.b.b.b.b.b.b.b.b.b) {
-											if ((pattern.b.b.b.b.b.b.b.b.a.$ === 'LEFT') && (!pattern.b.b.b.b.b.b.b.b.b.b)) {
-												var _n44 = pattern.a;
-												var _n45 = pattern.b;
-												var _n46 = _n45.a;
-												var _n47 = _n45.b;
-												var _n48 = _n47.a;
-												var _n49 = _n47.b;
-												var _n50 = _n49.a;
-												var _n51 = _n49.b;
-												var _n52 = _n51.a;
-												var _n53 = _n51.b;
-												var _n54 = _n53.a;
-												var _n55 = _n53.b;
-												var _n56 = _n55.a;
-												var _n57 = _n55.b;
-												var _n58 = _n57.a;
-												var _n59 = _n57.b;
-												var _n60 = _n59.a;
-												return '8';
-											} else {
-												break _n0$10;
-											}
-										} else {
-											var _n74 = pattern.a;
-											var _n75 = pattern.b;
+								default:
+									break _n0$16;
+							}
+						case 'LEFT':
+							switch (mainDirections.b.b.a.$) {
+								case 'UP':
+									switch (mainDirections.b.b.b.a.$) {
+										case 'EMPTY':
+											var _n72 = mainDirections.a;
+											var _n73 = mainDirections.b;
+											var _n74 = _n73.a;
+											var _n75 = _n73.b;
 											var _n76 = _n75.a;
 											var _n77 = _n75.b;
 											var _n78 = _n77.a;
-											var _n79 = _n77.b;
-											var _n80 = _n79.a;
-											var _n81 = _n79.b;
-											var _n82 = _n81.a;
-											var _n83 = _n81.b;
-											var _n84 = _n83.a;
-											var _n85 = _n83.b;
-											var _n86 = _n85.a;
-											var _n87 = _n85.b;
+											return 'X';
+										case 'RIGHT':
+											var _n86 = mainDirections.a;
+											var _n87 = mainDirections.b;
 											var _n88 = _n87.a;
-											return '8';
-										}
-									} else {
-										break _n0$10;
+											var _n89 = _n87.b;
+											var _n90 = _n89.a;
+											var _n91 = _n89.b;
+											var _n92 = _n91.a;
+											return 'X';
+										default:
+											break _n0$16;
 									}
+								case 'RIGHT':
+									if (mainDirections.b.b.b.a.$ === 'UP') {
+										var _n93 = mainDirections.a;
+										var _n94 = mainDirections.b;
+										var _n95 = _n94.a;
+										var _n96 = _n94.b;
+										var _n97 = _n96.a;
+										var _n98 = _n96.b;
+										var _n99 = _n98.a;
+										return 'X';
+									} else {
+										break _n0$16;
+									}
+								default:
+									break _n0$16;
+							}
+						case 'RIGHT':
+							switch (mainDirections.b.b.a.$) {
+								case 'EMPTY':
+									if (mainDirections.b.b.b.a.$ === 'EMPTY') {
+										var _n16 = mainDirections.a;
+										var _n17 = mainDirections.b;
+										var _n18 = _n17.a;
+										var _n19 = _n17.b;
+										var _n20 = _n19.a;
+										var _n21 = _n19.b;
+										var _n22 = _n21.a;
+										return 'L';
+									} else {
+										break _n0$16;
+									}
+								case 'UP':
+									switch (mainDirections.b.b.b.a.$) {
+										case 'EMPTY':
+											var _n9 = mainDirections.a;
+											var _n10 = mainDirections.b;
+											var _n11 = _n10.a;
+											var _n12 = _n10.b;
+											var _n13 = _n12.a;
+											var _n14 = _n12.b;
+											var _n15 = _n14.a;
+											return author$project$Symbols$rec_DRUE(symbol);
+										case 'LEFT':
+											var _n23 = mainDirections.a;
+											var _n24 = mainDirections.b;
+											var _n25 = _n24.a;
+											var _n26 = _n24.b;
+											var _n27 = _n26.a;
+											var _n28 = _n26.b;
+											var _n29 = _n28.a;
+											return author$project$Symbols$rec_DRUL(symbol);
+										case 'DOWN':
+											var _n30 = mainDirections.a;
+											var _n31 = mainDirections.b;
+											var _n32 = _n31.a;
+											var _n33 = _n31.b;
+											var _n34 = _n33.a;
+											var _n35 = _n33.b;
+											var _n36 = _n35.a;
+											return author$project$Symbols$rec_DRUD(symbol);
+										case 'RIGHT':
+											var _n37 = mainDirections.a;
+											var _n38 = mainDirections.b;
+											var _n39 = _n38.a;
+											var _n40 = _n38.b;
+											var _n41 = _n40.a;
+											var _n42 = _n40.b;
+											var _n43 = _n42.a;
+											return author$project$Symbols$rec_DRUR(symbol);
+										default:
+											break _n0$16;
+									}
+								case 'DOWN':
+									if (mainDirections.b.b.b.a.$ === 'LEFT') {
+										var _n79 = mainDirections.a;
+										var _n80 = mainDirections.b;
+										var _n81 = _n80.a;
+										var _n82 = _n80.b;
+										var _n83 = _n82.a;
+										var _n84 = _n82.b;
+										var _n85 = _n84.a;
+										return 'X';
+									} else {
+										break _n0$16;
+									}
+								case 'LEFT':
+									if (mainDirections.b.b.b.a.$ === 'UP') {
+										var _n100 = mainDirections.a;
+										var _n101 = mainDirections.b;
+										var _n102 = _n101.a;
+										var _n103 = _n101.b;
+										var _n104 = _n103.a;
+										var _n105 = _n103.b;
+										var _n106 = _n105.a;
+										return 'X';
+									} else {
+										break _n0$16;
+									}
+								default:
+									break _n0$16;
+							}
+						default:
+							break _n0$16;
+					}
+				} else {
+					break _n0$16;
+				}
+			}
+		} else {
+			break _n0$16;
+		}
+	}
+	return 'Unknown';
+};
+var author$project$Symbols$rec_LDRD = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	var numberOfCorners = elm$core$Array$length(symbol.corners);
+	_n0$4:
+	while (true) {
+		if ((secondaryDirections.b && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.b.a.$) {
+				case 'UP':
+					if (secondaryDirections.a.$ === 'LEFT') {
+						var _n1 = secondaryDirections.a;
+						var _n2 = secondaryDirections.b;
+						var _n3 = _n2.a;
+						return '8';
+					} else {
+						break _n0$4;
+					}
+				case 'EMPTY':
+					switch (secondaryDirections.a.$) {
+						case 'EMPTY':
+							var _n4 = secondaryDirections.a;
+							var _n5 = secondaryDirections.b;
+							var _n6 = _n5.a;
+							return 'T';
+						case 'RIGHT':
+							var _n7 = secondaryDirections.a;
+							var _n8 = secondaryDirections.b;
+							var _n9 = _n8.a;
+							_n10$2:
+							while (true) {
+								if (quadrantStartToEnd.a.$ === 'I') {
+									switch (quadrantStartToEnd.b.$) {
+										case 'IV':
+											var _n11 = quadrantStartToEnd.a;
+											var _n12 = quadrantStartToEnd.b;
+											return 'E';
+										case 'III':
+											var _n13 = quadrantStartToEnd.a;
+											var _n14 = quadrantStartToEnd.b;
+											return 'S';
+										default:
+											break _n10$2;
+									}
+								} else {
+									break _n10$2;
 								}
+							}
+							return 'Not recognized';
+						case 'LEFT':
+							var _n15 = secondaryDirections.a;
+							var _n16 = secondaryDirections.b;
+							var _n17 = _n16.a;
+							switch (numberOfCorners) {
+								case 0:
+									return 'S';
+								case 1:
+									return '5';
+								case 2:
+									return '5';
+								default:
+									return 'Not recognized';
+							}
+						default:
+							break _n0$4;
+					}
+				default:
+					break _n0$4;
+			}
+		} else {
+			break _n0$4;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_LDRU = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	var numberOfCorners = elm$core$Array$length(symbol.corners);
+	_n0$5:
+	while (true) {
+		if ((secondaryDirections.b && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.a.$) {
+				case 'RIGHT':
+					switch (secondaryDirections.b.a.$) {
+						case 'UP':
+							var _n11 = secondaryDirections.a;
+							var _n12 = secondaryDirections.b;
+							var _n13 = _n12.a;
+							return '5';
+						case 'DOWN':
+							var _n14 = secondaryDirections.a;
+							var _n15 = secondaryDirections.b;
+							var _n16 = _n15.a;
+							return '5';
+						default:
+							break _n0$5;
+					}
+				case 'DOWN':
+					if (secondaryDirections.b.a.$ === 'LEFT') {
+						var _n17 = secondaryDirections.a;
+						var _n18 = secondaryDirections.b;
+						var _n19 = _n18.a;
+						return '9';
+					} else {
+						break _n0$5;
+					}
+				case 'LEFT':
+					switch (secondaryDirections.b.a.$) {
+						case 'DOWN':
+							var _n1 = secondaryDirections.a;
+							var _n2 = secondaryDirections.b;
+							var _n3 = _n2.a;
+							_n4$3:
+							while (true) {
+								switch (quadrantStartToEnd.a.$) {
+									case 'I':
+										switch (quadrantStartToEnd.b.$) {
+											case 'IV':
+												var _n5 = quadrantStartToEnd.a;
+												var _n6 = quadrantStartToEnd.b;
+												return 'E';
+											case 'III':
+												var _n7 = quadrantStartToEnd.a;
+												var _n8 = quadrantStartToEnd.b;
+												return '6';
+											default:
+												break _n4$3;
+										}
+									case 'II':
+										if (quadrantStartToEnd.b.$ === 'III') {
+											var _n9 = quadrantStartToEnd.a;
+											var _n10 = quadrantStartToEnd.b;
+											return '6';
+										} else {
+											break _n4$3;
+										}
+									default:
+										break _n4$3;
+								}
+							}
+							return 'Not recognized';
+						case 'EMPTY':
+							var _n20 = secondaryDirections.a;
+							var _n21 = secondaryDirections.b;
+							var _n22 = _n21.a;
+							_n23$6:
+							while (true) {
+								switch (quadrantStartToEnd.a.$) {
+									case 'II':
+										switch (quadrantStartToEnd.b.$) {
+											case 'II':
+												var _n28 = quadrantStartToEnd.a;
+												var _n29 = quadrantStartToEnd.b;
+												return 'O';
+											case 'I':
+												var _n30 = quadrantStartToEnd.a;
+												var _n31 = quadrantStartToEnd.b;
+												return 'O';
+											default:
+												break _n23$6;
+										}
+									case 'I':
+										switch (quadrantStartToEnd.b.$) {
+											case 'I':
+												var _n24 = quadrantStartToEnd.a;
+												var _n25 = quadrantStartToEnd.b;
+												return 'O';
+											case 'II':
+												var _n26 = quadrantStartToEnd.a;
+												var _n27 = quadrantStartToEnd.b;
+												return 'O';
+											case 'III':
+												var _n32 = quadrantStartToEnd.a;
+												var _n33 = quadrantStartToEnd.b;
+												return 'G';
+											default:
+												var _n34 = quadrantStartToEnd.a;
+												var _n35 = quadrantStartToEnd.b;
+												return 'G';
+										}
+									default:
+										break _n23$6;
+								}
+							}
+							return 'Not recognized';
+						default:
+							break _n0$5;
+					}
+				default:
+					break _n0$5;
+			}
+		} else {
+			break _n0$5;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$recognizeSymbolLEFT = function (symbol) {
+	var mainDirections = symbol.mainDirections;
+	_n0$7:
+	while (true) {
+		if (((((mainDirections.b && (mainDirections.a.$ === 'LEFT')) && mainDirections.b.b) && mainDirections.b.b.b) && mainDirections.b.b.b.b) && (!mainDirections.b.b.b.b.b)) {
+			switch (mainDirections.b.a.$) {
+				case 'DOWN':
+					switch (mainDirections.b.b.a.$) {
+						case 'EMPTY':
+							if (mainDirections.b.b.b.a.$ === 'EMPTY') {
+								var _n1 = mainDirections.a;
+								var _n2 = mainDirections.b;
+								var _n3 = _n2.a;
+								var _n4 = _n2.b;
+								var _n5 = _n4.a;
+								var _n6 = _n4.b;
+								var _n7 = _n6.a;
+								return 'F';
+							} else {
+								break _n0$7;
+							}
+						case 'LEFT':
+							if (mainDirections.b.b.b.a.$ === 'EMPTY') {
+								var _n15 = mainDirections.a;
+								var _n16 = mainDirections.b;
+								var _n17 = _n16.a;
+								var _n18 = _n16.b;
+								var _n19 = _n18.a;
+								var _n20 = _n18.b;
+								var _n21 = _n20.a;
+								return 'S';
+							} else {
+								break _n0$7;
+							}
+						case 'RIGHT':
+							switch (mainDirections.b.b.b.a.$) {
+								case 'LEFT':
+									var _n8 = mainDirections.a;
+									var _n9 = mainDirections.b;
+									var _n10 = _n9.a;
+									var _n11 = _n9.b;
+									var _n12 = _n11.a;
+									var _n13 = _n11.b;
+									var _n14 = _n13.a;
+									return 'E';
+								case 'DOWN':
+									var _n22 = mainDirections.a;
+									var _n23 = mainDirections.b;
+									var _n24 = _n23.a;
+									var _n25 = _n23.b;
+									var _n26 = _n25.a;
+									var _n27 = _n25.b;
+									var _n28 = _n27.a;
+									return author$project$Symbols$rec_LDRD(symbol);
+								case 'UP':
+									var _n29 = mainDirections.a;
+									var _n30 = mainDirections.b;
+									var _n31 = _n30.a;
+									var _n32 = _n30.b;
+									var _n33 = _n32.a;
+									var _n34 = _n32.b;
+									var _n35 = _n34.a;
+									return author$project$Symbols$rec_LDRU(symbol);
+								default:
+									break _n0$7;
+							}
+						case 'UP':
+							if (mainDirections.b.b.b.a.$ === 'RIGHT') {
+								var _n36 = mainDirections.a;
+								var _n37 = mainDirections.b;
+								var _n38 = _n37.a;
+								var _n39 = _n37.b;
+								var _n40 = _n39.a;
+								var _n41 = _n39.b;
+								var _n42 = _n41.a;
+								return '5';
+							} else {
+								break _n0$7;
+							}
+						default:
+							break _n0$7;
+					}
+				case 'RIGHT':
+					if ((mainDirections.b.b.a.$ === 'DOWN') && (mainDirections.b.b.b.a.$ === 'EMPTY')) {
+						var _n43 = mainDirections.a;
+						var _n44 = mainDirections.b;
+						var _n45 = _n44.a;
+						var _n46 = _n44.b;
+						var _n47 = _n46.a;
+						var _n48 = _n46.b;
+						var _n49 = _n48.a;
+						return 'T';
+					} else {
+						break _n0$7;
+					}
+				default:
+					break _n0$7;
+			}
+		} else {
+			break _n0$7;
+		}
+	}
+	return 'Unknown';
+};
+var author$project$Symbols$rec_RDLD = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	var numberOfCorners = elm$core$Array$length(symbol.corners);
+	_n0$2:
+	while (true) {
+		if (((secondaryDirections.b && (secondaryDirections.a.$ === 'RIGHT')) && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.b.a.$) {
+				case 'EMPTY':
+					var _n1 = secondaryDirections.a;
+					var _n2 = secondaryDirections.b;
+					var _n3 = _n2.a;
+					return 'Z';
+				case 'DOWN':
+					var _n4 = secondaryDirections.a;
+					var _n5 = secondaryDirections.b;
+					var _n6 = _n5.a;
+					return '3';
+				default:
+					break _n0$2;
+			}
+		} else {
+			break _n0$2;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_RDLR = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	var numberOfCorners = elm$core$Array$length(symbol.corners);
+	_n0$2:
+	while (true) {
+		if ((secondaryDirections.b && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.a.$) {
+				case 'EMPTY':
+					if (secondaryDirections.b.a.$ === 'EMPTY') {
+						var _n1 = secondaryDirections.a;
+						var _n2 = secondaryDirections.b;
+						var _n3 = _n2.a;
+						switch (numberOfCorners) {
+							case 2:
+								return 'Z';
+							case 1:
+								return '2';
+							default:
+								return 'Not recognized';
+						}
+					} else {
+						break _n0$2;
+					}
+				case 'DOWN':
+					if (secondaryDirections.b.a.$ === 'LEFT') {
+						var _n5 = secondaryDirections.a;
+						var _n6 = secondaryDirections.b;
+						var _n7 = _n6.a;
+						return '3';
+					} else {
+						break _n0$2;
+					}
+				default:
+					break _n0$2;
+			}
+		} else {
+			break _n0$2;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_RURD = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	var numberOfCorners = elm$core$Array$length(symbol.corners);
+	_n0$2:
+	while (true) {
+		if (((secondaryDirections.b && secondaryDirections.b.b) && (secondaryDirections.b.a.$ === 'DOWN')) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.a.$) {
+				case 'RIGHT':
+					var _n1 = secondaryDirections.a;
+					var _n2 = secondaryDirections.b;
+					var _n3 = _n2.a;
+					return '3';
+				case 'LEFT':
+					var _n4 = secondaryDirections.a;
+					var _n5 = secondaryDirections.b;
+					var _n6 = _n5.a;
+					return '2';
+				default:
+					break _n0$2;
+			}
+		} else {
+			break _n0$2;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$recognizeSymbolRIGHT = function (symbol) {
+	var mainDirections = symbol.mainDirections;
+	_n0$8:
+	while (true) {
+		if (((((mainDirections.b && (mainDirections.a.$ === 'RIGHT')) && mainDirections.b.b) && mainDirections.b.b.b) && mainDirections.b.b.b.b) && (!mainDirections.b.b.b.b.b)) {
+			switch (mainDirections.b.a.$) {
+				case 'DOWN':
+					switch (mainDirections.b.b.a.$) {
+						case 'LEFT':
+							switch (mainDirections.b.b.b.a.$) {
+								case 'EMPTY':
+									var _n1 = mainDirections.a;
+									var _n2 = mainDirections.b;
+									var _n3 = _n2.a;
+									var _n4 = _n2.b;
+									var _n5 = _n4.a;
+									var _n6 = _n4.b;
+									var _n7 = _n6.a;
+									return 'J';
+								case 'DOWN':
+									var _n8 = mainDirections.a;
+									var _n9 = mainDirections.b;
+									var _n10 = _n9.a;
+									var _n11 = _n9.b;
+									var _n12 = _n11.a;
+									var _n13 = _n11.b;
+									var _n14 = _n13.a;
+									return author$project$Symbols$rec_RDLD(symbol);
+								case 'RIGHT':
+									var _n15 = mainDirections.a;
+									var _n16 = mainDirections.b;
+									var _n17 = _n16.a;
+									var _n18 = _n16.b;
+									var _n19 = _n18.a;
+									var _n20 = _n18.b;
+									var _n21 = _n20.a;
+									return author$project$Symbols$rec_RDLR(symbol);
+								default:
+									break _n0$8;
+							}
+						case 'EMPTY':
+							if (mainDirections.b.b.b.a.$ === 'EMPTY') {
+								var _n36 = mainDirections.a;
+								var _n37 = mainDirections.b;
+								var _n38 = _n37.a;
+								var _n39 = _n37.b;
+								var _n40 = _n39.a;
+								var _n41 = _n39.b;
+								var _n42 = _n41.a;
+								return '7';
+							} else {
+								break _n0$8;
+							}
+						case 'RIGHT':
+							switch (mainDirections.b.b.b.a.$) {
+								case 'DOWN':
+									var _n22 = mainDirections.a;
+									var _n23 = mainDirections.b;
+									var _n24 = _n23.a;
+									var _n25 = _n23.b;
+									var _n26 = _n25.a;
+									var _n27 = _n25.b;
+									var _n28 = _n27.a;
+									return '3';
+								case 'EMPTY':
+									var _n43 = mainDirections.a;
+									var _n44 = mainDirections.b;
+									var _n45 = _n44.a;
+									var _n46 = _n44.b;
+									var _n47 = _n46.a;
+									var _n48 = _n46.b;
+									var _n49 = _n48.a;
+									return '2';
+								default:
+									break _n0$8;
+							}
+						default:
+							break _n0$8;
+					}
+				case 'UP':
+					if (mainDirections.b.b.b.a.$ === 'DOWN') {
+						switch (mainDirections.b.b.a.$) {
+							case 'RIGHT':
+								var _n29 = mainDirections.a;
+								var _n30 = mainDirections.b;
+								var _n31 = _n30.a;
+								var _n32 = _n30.b;
+								var _n33 = _n32.a;
+								var _n34 = _n32.b;
+								var _n35 = _n34.a;
+								return author$project$Symbols$rec_RURD(symbol);
+							case 'LEFT':
+								var _n50 = mainDirections.a;
+								var _n51 = mainDirections.b;
+								var _n52 = _n51.a;
+								var _n53 = _n51.b;
+								var _n54 = _n53.a;
+								var _n55 = _n53.b;
+								var _n56 = _n55.a;
+								return 'Q';
+							default:
+								break _n0$8;
+						}
+					} else {
+						break _n0$8;
+					}
+				default:
+					break _n0$8;
+			}
+		} else {
+			break _n0$8;
+		}
+	}
+	return 'Unknown';
+};
+var author$project$Symbols$rec_UDEE = function (symbol) {
+	var secondaryDirection = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$4:
+	while (true) {
+		switch (quadrantStartToEnd.a.$) {
+			case 'II':
+				if (quadrantStartToEnd.b.$ === 'IV') {
+					var _n1 = quadrantStartToEnd.a;
+					var _n2 = quadrantStartToEnd.b;
+					return '1';
+				} else {
+					break _n0$4;
+				}
+			case 'III':
+				switch (quadrantStartToEnd.b.$) {
+					case 'IV':
+						var _n3 = quadrantStartToEnd.a;
+						var _n4 = quadrantStartToEnd.b;
+						return '1';
+					case 'III':
+						var _n5 = quadrantStartToEnd.a;
+						var _n6 = quadrantStartToEnd.b;
+						return 'A';
+					case 'II':
+						var _n7 = quadrantStartToEnd.a;
+						var _n8 = quadrantStartToEnd.b;
+						return 'A';
+					default:
+						break _n0$4;
+				}
+			default:
+				break _n0$4;
+		}
+	}
+	return 'Not Recognized';
+};
+var author$project$Symbols$rec_UDRU = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$4:
+	while (true) {
+		if ((secondaryDirections.b && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.b.a.$) {
+				case 'DOWN':
+					if (secondaryDirections.a.$ === 'RIGHT') {
+						var _n14 = secondaryDirections.a;
+						var _n15 = secondaryDirections.b;
+						var _n16 = _n15.a;
+						return 'M';
+					} else {
+						break _n0$4;
+					}
+				case 'EMPTY':
+					switch (secondaryDirections.a.$) {
+						case 'EMPTY':
+							var _n1 = secondaryDirections.a;
+							var _n2 = secondaryDirections.b;
+							var _n3 = _n2.a;
+							_n4$3:
+							while (true) {
+								if (quadrantStartToEnd.a.$ === 'III') {
+									switch (quadrantStartToEnd.b.$) {
+										case 'III':
+											var _n5 = quadrantStartToEnd.a;
+											var _n6 = quadrantStartToEnd.b;
+											return 'A';
+										case 'II':
+											var _n7 = quadrantStartToEnd.a;
+											var _n8 = quadrantStartToEnd.b;
+											return 'A';
+										case 'I':
+											var _n9 = quadrantStartToEnd.a;
+											var _n10 = quadrantStartToEnd.b;
+											return 'N';
+										default:
+											break _n4$3;
+									}
+								} else {
+									break _n4$3;
+								}
+							}
+							return 'Not recognized';
+						case 'DOWN':
+							var _n11 = secondaryDirections.a;
+							var _n12 = secondaryDirections.b;
+							var _n13 = _n12.a;
+							return 'M';
+						case 'LEFT':
+							var _n17 = secondaryDirections.a;
+							var _n18 = secondaryDirections.b;
+							var _n19 = _n18.a;
+							return 'A';
+						default:
+							break _n0$4;
+					}
+				default:
+					break _n0$4;
+			}
+		} else {
+			break _n0$4;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_UDUD = function (symbol) {
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$3:
+	while (true) {
+		if (quadrantStartToEnd.a.$ === 'III') {
+			switch (quadrantStartToEnd.b.$) {
+				case 'IV':
+					var _n1 = quadrantStartToEnd.a;
+					var _n2 = quadrantStartToEnd.b;
+					return 'M';
+				case 'III':
+					var _n3 = quadrantStartToEnd.a;
+					var _n4 = quadrantStartToEnd.b;
+					return 'A';
+				case 'II':
+					var _n5 = quadrantStartToEnd.a;
+					var _n6 = quadrantStartToEnd.b;
+					return 'A';
+				default:
+					break _n0$3;
+			}
+		} else {
+			break _n0$3;
+		}
+	}
+	return 'Not Recognized';
+};
+var author$project$Symbols$rec_UDUE = function (symbol) {
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$3:
+	while (true) {
+		if (quadrantStartToEnd.a.$ === 'III') {
+			switch (quadrantStartToEnd.b.$) {
+				case 'III':
+					var _n1 = quadrantStartToEnd.a;
+					var _n2 = quadrantStartToEnd.b;
+					return 'A';
+				case 'I':
+					var _n3 = quadrantStartToEnd.a;
+					var _n4 = quadrantStartToEnd.b;
+					return 'N';
+				case 'II':
+					var _n5 = quadrantStartToEnd.a;
+					var _n6 = quadrantStartToEnd.b;
+					return 'A';
+				default:
+					break _n0$3;
+			}
+		} else {
+			break _n0$3;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_ULDR = function (symbol) {
+	var secondaryDirection = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$8:
+	while (true) {
+		if ((secondaryDirection.b && secondaryDirection.b.b) && (!secondaryDirection.b.b.b)) {
+			switch (secondaryDirection.a.$) {
+				case 'EMPTY':
+					if (secondaryDirection.b.a.$ === 'EMPTY') {
+						var _n1 = secondaryDirection.a;
+						var _n2 = secondaryDirection.b;
+						var _n3 = _n2.a;
+						return 'C';
+					} else {
+						break _n0$8;
+					}
+				case 'LEFT':
+					if (secondaryDirection.b.a.$ === 'DOWN') {
+						var _n4 = secondaryDirection.a;
+						var _n5 = secondaryDirection.b;
+						var _n6 = _n5.a;
+						return 'E';
+					} else {
+						break _n0$8;
+					}
+				case 'DOWN':
+					switch (secondaryDirection.b.a.$) {
+						case 'LEFT':
+							var _n17 = secondaryDirection.a;
+							var _n18 = secondaryDirection.b;
+							var _n19 = _n18.a;
+							return 'S';
+						case 'RIGHT':
+							var _n23 = secondaryDirection.a;
+							var _n24 = secondaryDirection.b;
+							var _n25 = _n24.a;
+							return 'E';
+						default:
+							break _n0$8;
+					}
+				case 'UP':
+					switch (secondaryDirection.b.a.$) {
+						case 'LEFT':
+							var _n7 = secondaryDirection.a;
+							var _n8 = secondaryDirection.b;
+							var _n9 = _n8.a;
+							_n10$3:
+							while (true) {
+								switch (quadrantStartToEnd.a.$) {
+									case 'I':
+										switch (quadrantStartToEnd.b.$) {
+											case 'IV':
+												var _n11 = quadrantStartToEnd.a;
+												var _n12 = quadrantStartToEnd.b;
+												return 'E';
+											case 'III':
+												var _n13 = quadrantStartToEnd.a;
+												var _n14 = quadrantStartToEnd.b;
+												return '6';
+											default:
+												break _n10$3;
+										}
+									case 'II':
+										if (quadrantStartToEnd.b.$ === 'III') {
+											var _n15 = quadrantStartToEnd.a;
+											var _n16 = quadrantStartToEnd.b;
+											return '6';
+										} else {
+											break _n10$3;
+										}
+									default:
+										break _n10$3;
+								}
+							}
+							return 'Not Recognized';
+						case 'EMPTY':
+							var _n20 = secondaryDirection.a;
+							var _n21 = secondaryDirection.b;
+							var _n22 = _n21.a;
+							return 'G';
+						case 'RIGHT':
+							var _n26 = secondaryDirection.a;
+							var _n27 = secondaryDirection.b;
+							var _n28 = _n27.a;
+							if (quadrantStartToEnd.b.$ === 'IV') {
+								switch (quadrantStartToEnd.a.$) {
+									case 'I':
+										var _n30 = quadrantStartToEnd.a;
+										var _n31 = quadrantStartToEnd.b;
+										return 'E';
+									case 'II':
+										var _n32 = quadrantStartToEnd.a;
+										var _n33 = quadrantStartToEnd.b;
+										return 'E';
+									case 'IV':
+										var _n34 = quadrantStartToEnd.a;
+										var _n35 = quadrantStartToEnd.b;
+										return 'Q';
+									default:
+										var _n36 = quadrantStartToEnd.a;
+										var _n37 = quadrantStartToEnd.b;
+										return 'Q';
+								}
+							} else {
+								return 'Not Recognized';
+							}
+						case 'DOWN':
+							var _n38 = secondaryDirection.a;
+							var _n39 = secondaryDirection.b;
+							var _n40 = _n39.a;
+							_n41$3:
+							while (true) {
+								if (quadrantStartToEnd.b.$ === 'IV') {
+									switch (quadrantStartToEnd.a.$) {
+										case 'IV':
+											var _n42 = quadrantStartToEnd.a;
+											var _n43 = quadrantStartToEnd.b;
+											return 'Q';
+										case 'III':
+											var _n44 = quadrantStartToEnd.a;
+											var _n45 = quadrantStartToEnd.b;
+											return 'Q';
+										case 'I':
+											var _n46 = quadrantStartToEnd.a;
+											var _n47 = quadrantStartToEnd.b;
+											return 'E';
+										default:
+											break _n41$3;
+									}
+								} else {
+									break _n41$3;
+								}
+							}
+							return 'Not Recognized';
+						default:
+							break _n0$8;
+					}
+				default:
+					break _n0$8;
+			}
+		} else {
+			break _n0$8;
+		}
+	}
+	return 'Not Recognized';
+};
+var author$project$Symbols$rec_UPDE = function (symbol) {
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$4:
+	while (true) {
+		switch (quadrantStartToEnd.a.$) {
+			case 'II':
+				switch (quadrantStartToEnd.b.$) {
+					case 'IV':
+						var _n1 = quadrantStartToEnd.a;
+						var _n2 = quadrantStartToEnd.b;
+						return '7';
+					case 'III':
+						var _n3 = quadrantStartToEnd.a;
+						var _n4 = quadrantStartToEnd.b;
+						return '7';
+					default:
+						break _n0$4;
+				}
+			case 'III':
+				switch (quadrantStartToEnd.b.$) {
+					case 'III':
+						var _n5 = quadrantStartToEnd.a;
+						var _n6 = quadrantStartToEnd.b;
+						return 'A';
+					case 'II':
+						var _n7 = quadrantStartToEnd.a;
+						var _n8 = quadrantStartToEnd.b;
+						return 'A';
+					default:
+						break _n0$4;
+				}
+			default:
+				break _n0$4;
+		}
+	}
+	return 'Not Recognized';
+};
+var author$project$Symbols$rec_URDL = function (symbol) {
+	var secondaryDirection = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$6:
+	while (true) {
+		if ((secondaryDirection.b && secondaryDirection.b.b) && (!secondaryDirection.b.b.b)) {
+			switch (secondaryDirection.a.$) {
+				case 'EMPTY':
+					if (secondaryDirection.b.a.$ === 'EMPTY') {
+						var _n11 = secondaryDirection.a;
+						var _n12 = secondaryDirection.b;
+						var _n13 = _n12.a;
+						_n14$3:
+						while (true) {
+							switch (quadrantStartToEnd.a.$) {
+								case 'II':
+									if (quadrantStartToEnd.b.$ === 'III') {
+										var _n15 = quadrantStartToEnd.a;
+										var _n16 = quadrantStartToEnd.b;
+										return 'J';
+									} else {
+										break _n14$3;
+									}
+								case 'III':
+									switch (quadrantStartToEnd.b.$) {
+										case 'III':
+											var _n17 = quadrantStartToEnd.a;
+											var _n18 = quadrantStartToEnd.b;
+											return 'P';
+										case 'II':
+											var _n19 = quadrantStartToEnd.a;
+											var _n20 = quadrantStartToEnd.b;
+											return 'P';
+										default:
+											break _n14$3;
+									}
+								default:
+									break _n14$3;
+							}
+						}
+						return 'Not Recognized';
+					} else {
+						break _n0$6;
+					}
+				case 'UP':
+					if (secondaryDirection.b.a.$ === 'RIGHT') {
+						var _n21 = secondaryDirection.a;
+						var _n22 = secondaryDirection.b;
+						var _n23 = _n22.a;
+						_n24$4:
+						while (true) {
+							switch (quadrantStartToEnd.a.$) {
+								case 'II':
+									switch (quadrantStartToEnd.b.$) {
+										case 'IV':
+											var _n25 = quadrantStartToEnd.a;
+											var _n26 = quadrantStartToEnd.b;
+											return '2';
+										case 'III':
+											var _n27 = quadrantStartToEnd.a;
+											var _n28 = quadrantStartToEnd.b;
+											return '3';
+										default:
+											break _n24$4;
+									}
+								case 'III':
+									switch (quadrantStartToEnd.b.$) {
+										case 'IV':
+											var _n29 = quadrantStartToEnd.a;
+											var _n30 = quadrantStartToEnd.b;
+											return 'R';
+										case 'III':
+											var _n31 = quadrantStartToEnd.a;
+											var _n32 = quadrantStartToEnd.b;
+											return 'B';
+										default:
+											break _n24$4;
+									}
+								default:
+									break _n24$4;
+							}
+						}
+						return 'Not Recognized';
+					} else {
+						break _n0$6;
+					}
+				case 'DOWN':
+					if (secondaryDirection.b.a.$ === 'RIGHT') {
+						var _n41 = secondaryDirection.a;
+						var _n42 = secondaryDirection.b;
+						var _n43 = _n42.a;
+						_n44$4:
+						while (true) {
+							switch (quadrantStartToEnd.a.$) {
+								case 'II':
+									switch (quadrantStartToEnd.b.$) {
+										case 'IV':
+											var _n45 = quadrantStartToEnd.a;
+											var _n46 = quadrantStartToEnd.b;
+											return '2';
+										case 'III':
+											var _n47 = quadrantStartToEnd.a;
+											var _n48 = quadrantStartToEnd.b;
+											return '3';
+										default:
+											break _n44$4;
+									}
+								case 'III':
+									switch (quadrantStartToEnd.b.$) {
+										case 'IV':
+											var _n49 = quadrantStartToEnd.a;
+											var _n50 = quadrantStartToEnd.b;
+											return 'R';
+										case 'III':
+											var _n51 = quadrantStartToEnd.a;
+											var _n52 = quadrantStartToEnd.b;
+											return 'B';
+										default:
+											break _n44$4;
+									}
+								default:
+									break _n44$4;
+							}
+						}
+						return 'Not Recognized';
+					} else {
+						break _n0$6;
+					}
+				case 'RIGHT':
+					switch (secondaryDirection.b.a.$) {
+						case 'DOWN':
+							var _n1 = secondaryDirection.a;
+							var _n2 = secondaryDirection.b;
+							var _n3 = _n2.a;
+							_n4$3:
+							while (true) {
+								switch (quadrantStartToEnd.a.$) {
+									case 'II':
+										if (quadrantStartToEnd.b.$ === 'III') {
+											var _n7 = quadrantStartToEnd.a;
+											var _n8 = quadrantStartToEnd.b;
+											return '3';
+										} else {
+											break _n4$3;
+										}
+									case 'III':
+										switch (quadrantStartToEnd.b.$) {
+											case 'III':
+												var _n5 = quadrantStartToEnd.a;
+												var _n6 = quadrantStartToEnd.b;
+												return 'B';
+											case 'IV':
+												var _n9 = quadrantStartToEnd.a;
+												var _n10 = quadrantStartToEnd.b;
+												return 'R';
+											default:
+												break _n4$3;
+										}
+									default:
+										break _n4$3;
+								}
+							}
+							return 'Not Recognized';
+						case 'EMPTY':
+							var _n33 = secondaryDirection.a;
+							var _n34 = secondaryDirection.b;
+							var _n35 = _n34.a;
+							_n36$2:
+							while (true) {
+								if (quadrantStartToEnd.b.$ === 'IV') {
+									switch (quadrantStartToEnd.a.$) {
+										case 'II':
+											var _n37 = quadrantStartToEnd.a;
+											var _n38 = quadrantStartToEnd.b;
+											return '2';
+										case 'III':
+											var _n39 = quadrantStartToEnd.a;
+											var _n40 = quadrantStartToEnd.b;
+											return 'R';
+										default:
+											break _n36$2;
+									}
+								} else {
+									break _n36$2;
+								}
+							}
+							return 'Not Recognized';
+						case 'UP':
+							var _n53 = secondaryDirection.a;
+							var _n54 = secondaryDirection.b;
+							var _n55 = _n54.a;
+							return 'B';
+						default:
+							break _n0$6;
+					}
+				default:
+					break _n0$6;
+			}
+		} else {
+			break _n0$6;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_URDR = function (symbol) {
+	var secondaryDirections = symbol.secondaryDirections;
+	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	_n0$5:
+	while (true) {
+		if ((secondaryDirections.b && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
+			switch (secondaryDirections.a.$) {
+				case 'EMPTY':
+					if (secondaryDirections.b.a.$ === 'EMPTY') {
+						var _n1 = secondaryDirections.a;
+						var _n2 = secondaryDirections.b;
+						var _n3 = _n2.a;
+						_n4$3:
+						while (true) {
+							switch (quadrantStartToEnd.a.$) {
+								case 'II':
+									if (quadrantStartToEnd.b.$ === 'IV') {
+										var _n7 = quadrantStartToEnd.a;
+										var _n8 = quadrantStartToEnd.b;
+										return '2';
+									} else {
+										break _n4$3;
+									}
+								case 'III':
+									switch (quadrantStartToEnd.b.$) {
+										case 'I':
+											var _n5 = quadrantStartToEnd.a;
+											var _n6 = quadrantStartToEnd.b;
+											return 'N';
+										case 'IV':
+											var _n9 = quadrantStartToEnd.a;
+											var _n10 = quadrantStartToEnd.b;
+											return 'R';
+										default:
+											break _n4$3;
+									}
+								default:
+									break _n4$3;
+							}
+						}
+						return 'Not recognized';
+					} else {
+						break _n0$5;
+					}
+				case 'UP':
+					switch (secondaryDirections.b.a.$) {
+						case 'EMPTY':
+							var _n11 = secondaryDirections.a;
+							var _n12 = secondaryDirections.b;
+							var _n13 = _n12.a;
+							return 'N';
+						case 'RIGHT':
+							var _n14 = secondaryDirections.a;
+							var _n15 = secondaryDirections.b;
+							var _n16 = _n15.a;
+							_n17$2:
+							while (true) {
+								if (quadrantStartToEnd.a.$ === 'III') {
+									switch (quadrantStartToEnd.b.$) {
+										case 'IV':
+											var _n18 = quadrantStartToEnd.a;
+											var _n19 = quadrantStartToEnd.b;
+											return 'M';
+										case 'III':
+											var _n20 = quadrantStartToEnd.a;
+											var _n21 = quadrantStartToEnd.b;
+											return 'B';
+										default:
+											break _n17$2;
+									}
+								} else {
+									break _n17$2;
+								}
+							}
+							return 'Not recognized';
+						default:
+							break _n0$5;
+					}
+				case 'DOWN':
+					switch (secondaryDirections.b.a.$) {
+						case 'EMPTY':
+							var _n22 = secondaryDirections.a;
+							var _n23 = secondaryDirections.b;
+							var _n24 = _n23.a;
+							return 'R';
+						case 'LEFT':
+							var _n25 = secondaryDirections.a;
+							var _n26 = secondaryDirections.b;
+							var _n27 = _n26.a;
+							_n28$2:
+							while (true) {
+								if (quadrantStartToEnd.b.$ === 'III') {
+									switch (quadrantStartToEnd.a.$) {
+										case 'III':
+											var _n29 = quadrantStartToEnd.a;
+											var _n30 = quadrantStartToEnd.b;
+											return 'B';
+										case 'II':
+											var _n31 = quadrantStartToEnd.a;
+											var _n32 = quadrantStartToEnd.b;
+											return '3';
+										default:
+											break _n28$2;
+									}
+								} else {
+									break _n28$2;
+								}
+							}
+							return 'Not recognized';
+						default:
+							break _n0$5;
+					}
+				default:
+					break _n0$5;
+			}
+		} else {
+			break _n0$5;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$rec_URDU = function (symbol) {
+	var _n0 = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
+	var startQuadrant = _n0.a;
+	var endQuadrant = _n0.b;
+	var _n1 = _Utils_Tuple2(startQuadrant, endQuadrant);
+	_n1$5:
+	while (true) {
+		switch (_n1.a.$) {
+			case 'II':
+				switch (_n1.b.$) {
+					case 'IV':
+						var _n4 = _n1.a;
+						var _n5 = _n1.b;
+						return '2';
+					case 'III':
+						var _n6 = _n1.a;
+						var _n7 = _n1.b;
+						return '3';
+					default:
+						break _n1$5;
+				}
+			case 'III':
+				switch (_n1.b.$) {
+					case 'III':
+						var _n2 = _n1.a;
+						var _n3 = _n1.b;
+						return 'A';
+					case 'I':
+						var _n8 = _n1.a;
+						var _n9 = _n1.b;
+						return 'N';
+					case 'IV':
+						var _n10 = _n1.a;
+						var _n11 = _n1.b;
+						return 'R';
+					default:
+						break _n1$5;
+				}
+			default:
+				break _n1$5;
+		}
+	}
+	return 'Not recognized';
+};
+var author$project$Symbols$recognizeSymbolUP = function (symbol) {
+	var mainDirections = symbol.mainDirections;
+	_n0$10:
+	while (true) {
+		if (((((mainDirections.b && (mainDirections.a.$ === 'UP')) && mainDirections.b.b) && mainDirections.b.b.b) && mainDirections.b.b.b.b) && (!mainDirections.b.b.b.b.b)) {
+			switch (mainDirections.b.a.$) {
+				case 'LEFT':
+					if ((mainDirections.b.b.a.$ === 'DOWN') && (mainDirections.b.b.b.a.$ === 'RIGHT')) {
+						var _n50 = mainDirections.a;
+						var _n51 = mainDirections.b;
+						var _n52 = _n51.a;
+						var _n53 = _n51.b;
+						var _n54 = _n53.a;
+						var _n55 = _n53.b;
+						var _n56 = _n55.a;
+						return author$project$Symbols$rec_ULDR(symbol);
+					} else {
+						break _n0$10;
+					}
+				case 'RIGHT':
+					if (mainDirections.b.b.a.$ === 'DOWN') {
+						switch (mainDirections.b.b.b.a.$) {
+							case 'UP':
+								var _n15 = mainDirections.a;
+								var _n16 = mainDirections.b;
+								var _n17 = _n16.a;
+								var _n18 = _n16.b;
+								var _n19 = _n18.a;
+								var _n20 = _n18.b;
+								var _n21 = _n20.a;
+								return author$project$Symbols$rec_URDU(symbol);
+							case 'RIGHT':
+								var _n29 = mainDirections.a;
+								var _n30 = mainDirections.b;
+								var _n31 = _n30.a;
+								var _n32 = _n30.b;
+								var _n33 = _n32.a;
+								var _n34 = _n32.b;
+								var _n35 = _n34.a;
+								return author$project$Symbols$rec_URDR(symbol);
+							case 'LEFT':
+								var _n43 = mainDirections.a;
+								var _n44 = mainDirections.b;
+								var _n45 = _n44.a;
+								var _n46 = _n44.b;
+								var _n47 = _n46.a;
+								var _n48 = _n46.b;
+								var _n49 = _n48.a;
+								return author$project$Symbols$rec_URDL(symbol);
+							case 'EMPTY':
+								var _n57 = mainDirections.a;
+								var _n58 = mainDirections.b;
+								var _n59 = _n58.a;
+								var _n60 = _n58.b;
+								var _n61 = _n60.a;
+								var _n62 = _n60.b;
+								var _n63 = _n62.a;
+								return author$project$Symbols$rec_UPDE(symbol);
+							default:
+								break _n0$10;
+						}
+					} else {
+						break _n0$10;
+					}
+				case 'DOWN':
+					switch (mainDirections.b.b.a.$) {
+						case 'EMPTY':
+							if (mainDirections.b.b.b.a.$ === 'EMPTY') {
+								var _n1 = mainDirections.a;
+								var _n2 = mainDirections.b;
+								var _n3 = _n2.a;
+								var _n4 = _n2.b;
+								var _n5 = _n4.a;
+								var _n6 = _n4.b;
+								var _n7 = _n6.a;
+								return author$project$Symbols$rec_UDEE(symbol);
 							} else {
 								break _n0$10;
 							}
-						} else {
-							switch (pattern.b.b.b.b.a.$) {
-								case 'LEFT':
-									switch (pattern.b.b.b.a.$) {
-										case 'UP':
-											if (pattern.b.b.b.b.b.a.$ === 'DOWN') {
-												var _n33 = pattern.a;
-												var _n34 = pattern.b;
-												var _n35 = _n34.a;
-												var _n36 = _n34.b;
-												var _n37 = _n36.a;
-												var _n38 = _n36.b;
-												var _n39 = _n38.a;
-												var _n40 = _n38.b;
-												var _n41 = _n40.a;
-												var _n42 = _n40.b;
-												var _n43 = _n42.a;
-												return '6';
-											} else {
-												break _n0$10;
-											}
-										case 'DOWN':
-											if (pattern.b.b.b.b.b.a.$ === 'UP') {
-												var _n89 = pattern.a;
-												var _n90 = pattern.b;
-												var _n91 = _n90.a;
-												var _n92 = _n90.b;
-												var _n93 = _n92.a;
-												var _n94 = _n92.b;
-												var _n95 = _n94.a;
-												var _n96 = _n94.b;
-												var _n97 = _n96.a;
-												var _n98 = _n96.b;
-												var _n99 = _n98.a;
-												return '8';
-											} else {
-												break _n0$10;
-											}
-										default:
-											break _n0$10;
-									}
+						case 'RIGHT':
+							if (mainDirections.b.b.b.a.$ === 'UP') {
+								var _n36 = mainDirections.a;
+								var _n37 = mainDirections.b;
+								var _n38 = _n37.a;
+								var _n39 = _n37.b;
+								var _n40 = _n39.a;
+								var _n41 = _n39.b;
+								var _n42 = _n41.a;
+								return author$project$Symbols$rec_UDRU(symbol);
+							} else {
+								break _n0$10;
+							}
+						case 'UP':
+							switch (mainDirections.b.b.b.a.$) {
+								case 'EMPTY':
+									var _n8 = mainDirections.a;
+									var _n9 = mainDirections.b;
+									var _n10 = _n9.a;
+									var _n11 = _n9.b;
+									var _n12 = _n11.a;
+									var _n13 = _n11.b;
+									var _n14 = _n13.a;
+									return author$project$Symbols$rec_UDUE(symbol);
 								case 'DOWN':
-									switch (pattern.b.b.b.a.$) {
-										case 'LEFT':
-											if (pattern.b.b.b.b.b.a.$ === 'RIGHT') {
-												var _n4 = pattern.a;
-												var _n5 = pattern.b;
-												var _n6 = _n5.a;
-												var _n7 = _n5.b;
-												var _n8 = _n7.a;
-												var _n9 = _n7.b;
-												var _n10 = _n9.a;
-												var _n11 = _n9.b;
-												var _n12 = _n11.a;
-												var _n13 = _n11.b;
-												var _n14 = _n13.a;
-												return 'E';
-											} else {
-												break _n0$10;
-											}
-										case 'UP':
-											if (pattern.b.b.b.b.b.a.$ === 'LEFT') {
-												var _n100 = pattern.a;
-												var _n101 = pattern.b;
-												var _n102 = _n101.a;
-												var _n103 = _n101.b;
-												var _n104 = _n103.a;
-												var _n105 = _n103.b;
-												var _n106 = _n105.a;
-												var _n107 = _n105.b;
-												var _n108 = _n107.a;
-												var _n109 = _n107.b;
-												var _n110 = _n109.a;
-												return '9';
-											} else {
-												break _n0$10;
-											}
-										default:
-											break _n0$10;
-									}
+									var _n22 = mainDirections.a;
+									var _n23 = mainDirections.b;
+									var _n24 = _n23.a;
+									var _n25 = _n23.b;
+									var _n26 = _n25.a;
+									var _n27 = _n25.b;
+									var _n28 = _n27.a;
+									return author$project$Symbols$rec_UDUD(symbol);
+								case 'LEFT':
+									var _n64 = mainDirections.a;
+									var _n65 = mainDirections.b;
+									var _n66 = _n65.a;
+									var _n67 = _n65.b;
+									var _n68 = _n67.a;
+									var _n69 = _n67.b;
+									var _n70 = _n69.a;
+									return 'A';
 								default:
 									break _n0$10;
 							}
-						}
+						default:
+							break _n0$10;
 					}
-				} else {
+				default:
 					break _n0$10;
-				}
 			}
 		} else {
 			break _n0$10;
@@ -5695,285 +7398,29 @@ var author$project$Symbols$recognizeSymbolLeft = function (symbol) {
 	}
 	return 'Unknown';
 };
-var author$project$Symbols$recognizeSymbolRight = function (symbol) {
-	var pattern = elm$core$Array$toList(symbol.directions);
-	_n0$8:
-	while (true) {
-		if ((pattern.b && (pattern.a.$ === 'RIGHT')) && pattern.b.b) {
-			if (pattern.b.b.b) {
-				if (!pattern.b.b.b.b) {
-					switch (pattern.b.a.$) {
-						case 'DOWN':
-							switch (pattern.b.b.a.$) {
-								case 'LEFT':
-									var _n1 = pattern.a;
-									var _n2 = pattern.b;
-									var _n3 = _n2.a;
-									var _n4 = _n2.b;
-									var _n5 = _n4.a;
-									return 'J';
-								case 'RIGHT':
-									var _n13 = pattern.a;
-									var _n14 = pattern.b;
-									var _n15 = _n14.a;
-									var _n16 = _n14.b;
-									var _n17 = _n16.a;
-									return 'Z';
-								default:
-									break _n0$8;
-							}
-						case 'LEFT':
-							if (pattern.b.b.a.$ === 'RIGHT') {
-								var _n18 = pattern.a;
-								var _n19 = pattern.b;
-								var _n20 = _n19.a;
-								var _n21 = _n19.b;
-								var _n22 = _n21.a;
-								return 'Z';
-							} else {
-								break _n0$8;
-							}
-						default:
-							break _n0$8;
-					}
-				} else {
-					if ((pattern.b.a.$ === 'DOWN') && (pattern.b.b.a.$ === 'LEFT')) {
-						if (!pattern.b.b.b.b.b) {
-							switch (pattern.b.b.b.a.$) {
-								case 'UP':
-									var _n6 = pattern.a;
-									var _n7 = pattern.b;
-									var _n8 = _n7.a;
-									var _n9 = _n7.b;
-									var _n10 = _n9.a;
-									var _n11 = _n9.b;
-									var _n12 = _n11.a;
-									return 'J';
-								case 'RIGHT':
-									var _n32 = pattern.a;
-									var _n33 = pattern.b;
-									var _n34 = _n33.a;
-									var _n35 = _n33.b;
-									var _n36 = _n35.a;
-									var _n37 = _n35.b;
-									var _n38 = _n37.a;
-									return 'Z';
-								default:
-									break _n0$8;
-							}
-						} else {
-							if (!pattern.b.b.b.b.b.b) {
-								if ((pattern.b.b.b.a.$ === 'DOWN') && (pattern.b.b.b.b.a.$ === 'RIGHT')) {
-									var _n23 = pattern.a;
-									var _n24 = pattern.b;
-									var _n25 = _n24.a;
-									var _n26 = _n24.b;
-									var _n27 = _n26.a;
-									var _n28 = _n26.b;
-									var _n29 = _n28.a;
-									var _n30 = _n28.b;
-									var _n31 = _n30.a;
-									return 'Z';
-								} else {
-									break _n0$8;
-								}
-							} else {
-								if ((((pattern.b.b.b.a.$ === 'RIGHT') && (pattern.b.b.b.b.a.$ === 'DOWN')) && (pattern.b.b.b.b.b.a.$ === 'LEFT')) && (!pattern.b.b.b.b.b.b.b)) {
-									var _n39 = pattern.a;
-									var _n40 = pattern.b;
-									var _n41 = _n40.a;
-									var _n42 = _n40.b;
-									var _n43 = _n42.a;
-									var _n44 = _n42.b;
-									var _n45 = _n44.a;
-									var _n46 = _n44.b;
-									var _n47 = _n46.a;
-									var _n48 = _n46.b;
-									var _n49 = _n48.a;
-									return '3';
-								} else {
-									break _n0$8;
-								}
-							}
-						}
-					} else {
-						break _n0$8;
-					}
-				}
-			} else {
-				if (pattern.b.a.$ === 'DOWN') {
-					var _n50 = pattern.a;
-					var _n51 = pattern.b;
-					var _n52 = _n51.a;
-					return '7';
-				} else {
-					break _n0$8;
-				}
-			}
-		} else {
-			break _n0$8;
-		}
+var elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(x);
+	} else {
+		return elm$core$Maybe$Nothing;
 	}
-	return 'Unknown';
-};
-var author$project$Symbols$recognizeSymbolUp = function (symbol) {
-	var pattern = elm$core$Array$toList(symbol.directions);
-	_n0$8:
-	while (true) {
-		if ((pattern.b && (pattern.a.$ === 'UP')) && pattern.b.b) {
-			if (!pattern.b.b.b) {
-				if (pattern.b.a.$ === 'DOWN') {
-					var _n1 = pattern.a;
-					var _n2 = pattern.b;
-					var _n3 = _n2.a;
-					return '1';
-				} else {
-					break _n0$8;
-				}
-			} else {
-				if (!pattern.b.b.b.b) {
-					if ((pattern.b.a.$ === 'DOWN') && (pattern.b.b.a.$ === 'UP')) {
-						var _n4 = pattern.a;
-						var _n5 = pattern.b;
-						var _n6 = _n5.a;
-						var _n7 = _n5.b;
-						var _n8 = _n7.a;
-						return 'A';
-					} else {
-						break _n0$8;
-					}
-				} else {
-					if (!pattern.b.b.b.b.b) {
-						switch (pattern.b.b.a.$) {
-							case 'UP':
-								if ((pattern.b.a.$ === 'DOWN') && (pattern.b.b.b.a.$ === 'DOWN')) {
-									var _n9 = pattern.a;
-									var _n10 = pattern.b;
-									var _n11 = _n10.a;
-									var _n12 = _n10.b;
-									var _n13 = _n12.a;
-									var _n14 = _n12.b;
-									var _n15 = _n14.a;
-									return 'M';
-								} else {
-									break _n0$8;
-								}
-							case 'DOWN':
-								switch (pattern.b.a.$) {
-									case 'RIGHT':
-										if (pattern.b.b.b.a.$ === 'LEFT') {
-											var _n29 = pattern.a;
-											var _n30 = pattern.b;
-											var _n31 = _n30.a;
-											var _n32 = _n30.b;
-											var _n33 = _n32.a;
-											var _n34 = _n32.b;
-											var _n35 = _n34.a;
-											return 'P';
-										} else {
-											break _n0$8;
-										}
-									case 'LEFT':
-										if (pattern.b.b.b.a.$ === 'RIGHT') {
-											var _n47 = pattern.a;
-											var _n48 = pattern.b;
-											var _n49 = _n48.a;
-											var _n50 = _n48.b;
-											var _n51 = _n50.a;
-											var _n52 = _n50.b;
-											var _n53 = _n52.a;
-											return 'C';
-										} else {
-											break _n0$8;
-										}
-									default:
-										break _n0$8;
-								}
-							default:
-								break _n0$8;
-						}
-					} else {
-						if (((pattern.b.a.$ === 'RIGHT') && (pattern.b.b.a.$ === 'DOWN')) && (pattern.b.b.b.a.$ === 'LEFT')) {
-							if (pattern.b.b.b.b.b.b) {
-								if ((pattern.b.b.b.b.a.$ === 'RIGHT') && (pattern.b.b.b.b.b.a.$ === 'DOWN')) {
-									if (pattern.b.b.b.b.b.b.b) {
-										if ((pattern.b.b.b.b.b.b.a.$ === 'LEFT') && (!pattern.b.b.b.b.b.b.b.b)) {
-											var _n16 = pattern.a;
-											var _n17 = pattern.b;
-											var _n18 = _n17.a;
-											var _n19 = _n17.b;
-											var _n20 = _n19.a;
-											var _n21 = _n19.b;
-											var _n22 = _n21.a;
-											var _n23 = _n21.b;
-											var _n24 = _n23.a;
-											var _n25 = _n23.b;
-											var _n26 = _n25.a;
-											var _n27 = _n25.b;
-											var _n28 = _n27.a;
-											return 'B';
-										} else {
-											break _n0$8;
-										}
-									} else {
-										var _n36 = pattern.a;
-										var _n37 = pattern.b;
-										var _n38 = _n37.a;
-										var _n39 = _n37.b;
-										var _n40 = _n39.a;
-										var _n41 = _n39.b;
-										var _n42 = _n41.a;
-										var _n43 = _n41.b;
-										var _n44 = _n43.a;
-										var _n45 = _n43.b;
-										var _n46 = _n45.a;
-										return 'R';
-									}
-								} else {
-									break _n0$8;
-								}
-							} else {
-								if (pattern.b.b.b.b.a.$ === 'UP') {
-									var _n54 = pattern.a;
-									var _n55 = pattern.b;
-									var _n56 = _n55.a;
-									var _n57 = _n55.b;
-									var _n58 = _n57.a;
-									var _n59 = _n57.b;
-									var _n60 = _n59.a;
-									var _n61 = _n59.b;
-									var _n62 = _n61.a;
-									return '2';
-								} else {
-									break _n0$8;
-								}
-							}
-						} else {
-							break _n0$8;
-						}
-					}
-				}
-			}
-		} else {
-			break _n0$8;
-		}
-	}
-	return 'Unknown';
 };
 var author$project$DataManipulation$recognizeSymbol = function (symbol) {
 	var firstDirection = author$project$Types$fromMaybeDirection(
-		A2(elm$core$Array$get, 0, symbol.directions));
+		elm$core$List$head(symbol.mainDirections));
 	switch (firstDirection.$) {
 		case 'DOWN':
-			return author$project$Symbols$recognizeSymbolDown(symbol);
+			return author$project$Symbols$recognizeSymbolDOWN(symbol);
 		case 'UP':
-			return author$project$Symbols$recognizeSymbolUp(symbol);
+			return author$project$Symbols$recognizeSymbolUP(symbol);
 		case 'LEFT':
-			return author$project$Symbols$recognizeSymbolLeft(symbol);
+			return author$project$Symbols$recognizeSymbolLEFT(symbol);
 		case 'RIGHT':
-			return author$project$Symbols$recognizeSymbolRight(symbol);
+			return author$project$Symbols$recognizeSymbolRIGHT(symbol);
 		default:
-			return 'Unknown';
+			return 'Not Recognized';
 	}
 };
 var elm$core$Basics$round = _Basics_round;
@@ -6052,6 +7499,206 @@ var author$project$DataManipulation$thinning = F3(
 				thinnedPoints);
 		}
 	});
+var elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var elm$core$Array$sliceLeft = F2(
+	function (from, array) {
+		var len = array.a;
+		var tree = array.c;
+		var tail = array.d;
+		if (!from) {
+			return array;
+		} else {
+			if (_Utils_cmp(
+				from,
+				elm$core$Array$tailIndex(len)) > -1) {
+				return A4(
+					elm$core$Array$Array_elm_builtin,
+					len - from,
+					elm$core$Array$shiftStep,
+					elm$core$Elm$JsArray$empty,
+					A3(
+						elm$core$Elm$JsArray$slice,
+						from - elm$core$Array$tailIndex(len),
+						elm$core$Elm$JsArray$length(tail),
+						tail));
+			} else {
+				var skipNodes = (from / elm$core$Array$branchFactor) | 0;
+				var helper = F2(
+					function (node, acc) {
+						if (node.$ === 'SubTree') {
+							var subTree = node.a;
+							return A3(elm$core$Elm$JsArray$foldr, helper, acc, subTree);
+						} else {
+							var leaf = node.a;
+							return A2(elm$core$List$cons, leaf, acc);
+						}
+					});
+				var leafNodes = A3(
+					elm$core$Elm$JsArray$foldr,
+					helper,
+					_List_fromArray(
+						[tail]),
+					tree);
+				var nodesToInsert = A2(elm$core$List$drop, skipNodes, leafNodes);
+				if (!nodesToInsert.b) {
+					return elm$core$Array$empty;
+				} else {
+					var head = nodesToInsert.a;
+					var rest = nodesToInsert.b;
+					var firstSlice = from - (skipNodes * elm$core$Array$branchFactor);
+					var initialBuilder = {
+						nodeList: _List_Nil,
+						nodeListSize: 0,
+						tail: A3(
+							elm$core$Elm$JsArray$slice,
+							firstSlice,
+							elm$core$Elm$JsArray$length(head),
+							head)
+					};
+					return A2(
+						elm$core$Array$builderToArray,
+						true,
+						A3(elm$core$List$foldl, elm$core$Array$appendHelpBuilder, initialBuilder, rest));
+				}
+			}
+		}
+	});
+var elm$core$Array$fetchNewTail = F4(
+	function (shift, end, treeEnd, tree) {
+		fetchNewTail:
+		while (true) {
+			var pos = elm$core$Array$bitMask & (treeEnd >>> shift);
+			var _n0 = A2(elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_n0.$ === 'SubTree') {
+				var sub = _n0.a;
+				var $temp$shift = shift - elm$core$Array$shiftStep,
+					$temp$end = end,
+					$temp$treeEnd = treeEnd,
+					$temp$tree = sub;
+				shift = $temp$shift;
+				end = $temp$end;
+				treeEnd = $temp$treeEnd;
+				tree = $temp$tree;
+				continue fetchNewTail;
+			} else {
+				var values = _n0.a;
+				return A3(elm$core$Elm$JsArray$slice, 0, elm$core$Array$bitMask & end, values);
+			}
+		}
+	});
+var elm$core$Array$hoistTree = F3(
+	function (oldShift, newShift, tree) {
+		hoistTree:
+		while (true) {
+			if ((_Utils_cmp(oldShift, newShift) < 1) || (!elm$core$Elm$JsArray$length(tree))) {
+				return tree;
+			} else {
+				var _n0 = A2(elm$core$Elm$JsArray$unsafeGet, 0, tree);
+				if (_n0.$ === 'SubTree') {
+					var sub = _n0.a;
+					var $temp$oldShift = oldShift - elm$core$Array$shiftStep,
+						$temp$newShift = newShift,
+						$temp$tree = sub;
+					oldShift = $temp$oldShift;
+					newShift = $temp$newShift;
+					tree = $temp$tree;
+					continue hoistTree;
+				} else {
+					return tree;
+				}
+			}
+		}
+	});
+var elm$core$Array$sliceTree = F3(
+	function (shift, endIdx, tree) {
+		var lastPos = elm$core$Array$bitMask & (endIdx >>> shift);
+		var _n0 = A2(elm$core$Elm$JsArray$unsafeGet, lastPos, tree);
+		if (_n0.$ === 'SubTree') {
+			var sub = _n0.a;
+			var newSub = A3(elm$core$Array$sliceTree, shift - elm$core$Array$shiftStep, endIdx, sub);
+			return (!elm$core$Elm$JsArray$length(newSub)) ? A3(elm$core$Elm$JsArray$slice, 0, lastPos, tree) : A3(
+				elm$core$Elm$JsArray$unsafeSet,
+				lastPos,
+				elm$core$Array$SubTree(newSub),
+				A3(elm$core$Elm$JsArray$slice, 0, lastPos + 1, tree));
+		} else {
+			return A3(elm$core$Elm$JsArray$slice, 0, lastPos, tree);
+		}
+	});
+var elm$core$Array$sliceRight = F2(
+	function (end, array) {
+		var len = array.a;
+		var startShift = array.b;
+		var tree = array.c;
+		var tail = array.d;
+		if (_Utils_eq(end, len)) {
+			return array;
+		} else {
+			if (_Utils_cmp(
+				end,
+				elm$core$Array$tailIndex(len)) > -1) {
+				return A4(
+					elm$core$Array$Array_elm_builtin,
+					end,
+					startShift,
+					tree,
+					A3(elm$core$Elm$JsArray$slice, 0, elm$core$Array$bitMask & end, tail));
+			} else {
+				var endIdx = elm$core$Array$tailIndex(end);
+				var depth = elm$core$Basics$floor(
+					A2(
+						elm$core$Basics$logBase,
+						elm$core$Array$branchFactor,
+						A2(elm$core$Basics$max, 1, endIdx - 1)));
+				var newShift = A2(elm$core$Basics$max, 5, depth * elm$core$Array$shiftStep);
+				return A4(
+					elm$core$Array$Array_elm_builtin,
+					end,
+					newShift,
+					A3(
+						elm$core$Array$hoistTree,
+						startShift,
+						newShift,
+						A3(elm$core$Array$sliceTree, startShift, endIdx, tree)),
+					A4(elm$core$Array$fetchNewTail, startShift, end, endIdx, tree));
+			}
+		}
+	});
+var elm$core$Array$translateIndex = F2(
+	function (index, _n0) {
+		var len = _n0.a;
+		var posIndex = (index < 0) ? (len + index) : index;
+		return (posIndex < 0) ? 0 : ((_Utils_cmp(posIndex, len) > 0) ? len : posIndex);
+	});
+var elm$core$Array$slice = F3(
+	function (from, to, array) {
+		var correctTo = A2(elm$core$Array$translateIndex, to, array);
+		var correctFrom = A2(elm$core$Array$translateIndex, from, array);
+		return (_Utils_cmp(correctFrom, correctTo) > 0) ? elm$core$Array$empty : A2(
+			elm$core$Array$sliceLeft,
+			correctFrom,
+			A2(elm$core$Array$sliceRight, correctTo, array));
+	});
 var author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -6064,12 +7711,12 @@ var author$project$Main$update = F2(
 					var rawPointsNew = A2(elm$core$Array$push, newPoint, rawPointsSoFar);
 					var smoothedPath = A4(author$project$DataManipulation$smoothing, rawPointsNew, model.smoothedPath, model.smoothingFactor, newPoint);
 					var thinnedPath = A3(author$project$DataManipulation$thinning, smoothedPath, model.thinnedPath, model.thinningFactor);
-					var curvaturePath = A2(author$project$DataManipulation$getDirection, thinnedPath, model.curvePath);
+					var directionsPath = A2(author$project$DataManipulation$getDirections, thinnedPath, model.directionsPath);
 					var corners = A3(author$project$DataManipulation$detectCorners, thinnedPath, model.corners, model.cornerThreshold);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{corners: corners, curvePath: curvaturePath, path: rawPointsNew, pointerPosition: pos, smoothedPath: smoothedPath, thinnedPath: thinnedPath}),
+							{corners: corners, directionsPath: directionsPath, path: rawPointsNew, pointerPosition: pos, smoothedPath: smoothedPath, thinnedPath: thinnedPath}),
 						elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(
@@ -6082,19 +7729,28 @@ var author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{corners: elm$core$Array$empty, currentlyDrawing: true, curvePath: elm$core$Array$empty, path: elm$core$Array$empty, smoothedPath: elm$core$Array$empty, thinnedPath: elm$core$Array$empty}),
+						{corners: elm$core$Array$empty, currentlyDrawing: true, directionsPath: elm$core$Array$empty, path: elm$core$Array$empty, smoothedPath: elm$core$Array$empty, thinnedPath: elm$core$Array$empty}),
 					elm$core$Platform$Cmd$none);
 			default:
+				var conditionedDirections = author$project$DataManipulation$conditioningDirections(model.directionsPath);
+				var mainDirections = elm$core$Array$toList(
+					A3(elm$core$Array$slice, 0, 4, conditionedDirections));
+				var secondaryDirection = elm$core$Array$toList(
+					A3(elm$core$Array$slice, 4, 6, conditionedDirections));
 				var _n2 = author$project$DataManipulation$getStartAndEndPosition(model.thinnedPath);
 				var startQuadrant = _n2.a;
 				var endQuadrant = _n2.b;
-				var symbol = {corners: model.corners, directions: model.curvePath, endQuadrant: endQuadrant, startQuadrant: startQuadrant};
+				var symbol = {corners: model.corners, endQuadrant: endQuadrant, mainDirections: mainDirections, secondaryDirections: secondaryDirection, startQuadrant: startQuadrant};
 				var recognizedSymbol = author$project$DataManipulation$recognizeSymbol(symbol);
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{currentlyDrawing: false, recognizedSymbol: recognizedSymbol}),
-					elm$core$Platform$Cmd$none);
+				return A2(
+					elm$core$Debug$log,
+					elm$core$Debug$toString(
+						elm$core$Array$length(symbol.corners)),
+					_Utils_Tuple2(
+						_Utils_update(
+							model,
+							{currentlyDrawing: false, directionsPath: conditionedDirections, recognizedSymbol: recognizedSymbol}),
+						elm$core$Platform$Cmd$none));
 		}
 	});
 var author$project$Main$canvasSize = {height: 400, width: 300};
@@ -6276,10 +7932,13 @@ var author$project$Main$pathToSvg = function (points) {
 			]),
 		_List_Nil);
 };
-var elm$core$Debug$log = _Debug_log;
-var elm$core$Debug$toString = _Debug_toString;
 var elm$core$String$fromFloat = _String_fromNumber;
 var elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
+var mdgriffith$elm_ui$Internal$Model$AlignX = function (a) {
+	return {$: 'AlignX', a: a};
+};
+var mdgriffith$elm_ui$Internal$Model$CenterX = {$: 'CenterX'};
+var mdgriffith$elm_ui$Element$centerX = mdgriffith$elm_ui$Internal$Model$AlignX(mdgriffith$elm_ui$Internal$Model$CenterX);
 var mdgriffith$elm_ui$Internal$Model$Height = function (a) {
 	return {$: 'Height', a: a};
 };
@@ -11818,6 +13477,23 @@ var mdgriffith$elm_ui$Element$column = F2(
 						attrs))),
 			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
+var mdgriffith$elm_ui$Element$el = F2(
+	function (attrs, child) {
+		return A4(
+			mdgriffith$elm_ui$Internal$Model$element,
+			mdgriffith$elm_ui$Internal$Model$asEl,
+			mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$shrink),
+				A2(
+					elm$core$List$cons,
+					mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$shrink),
+					attrs)),
+			mdgriffith$elm_ui$Internal$Model$Unkeyed(
+				_List_fromArray(
+					[child])));
+	});
 var mdgriffith$elm_ui$Internal$Model$Fill = function (a) {
 	return {$: 'Fill', a: a};
 };
@@ -12099,6 +13775,64 @@ var mdgriffith$elm_ui$Element$layoutWith = F3(
 	});
 var mdgriffith$elm_ui$Element$layout = mdgriffith$elm_ui$Element$layoutWith(
 	{options: _List_Nil});
+var mdgriffith$elm_ui$Internal$Flag$padding = mdgriffith$elm_ui$Internal$Flag$flag(2);
+var mdgriffith$elm_ui$Internal$Model$PaddingStyle = F5(
+	function (a, b, c, d, e) {
+		return {$: 'PaddingStyle', a: a, b: b, c: c, d: d, e: e};
+	});
+var mdgriffith$elm_ui$Element$padding = function (x) {
+	return A2(
+		mdgriffith$elm_ui$Internal$Model$StyleClass,
+		mdgriffith$elm_ui$Internal$Flag$padding,
+		A5(
+			mdgriffith$elm_ui$Internal$Model$PaddingStyle,
+			'p-' + elm$core$String$fromInt(x),
+			x,
+			x,
+			x,
+			x));
+};
+var mdgriffith$elm_ui$Internal$Flag$spacing = mdgriffith$elm_ui$Internal$Flag$flag(3);
+var mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
+	function (a, b, c) {
+		return {$: 'SpacingStyle', a: a, b: b, c: c};
+	});
+var mdgriffith$elm_ui$Internal$Model$spacingName = F2(
+	function (x, y) {
+		return 'spacing-' + (elm$core$String$fromInt(x) + ('-' + elm$core$String$fromInt(y)));
+	});
+var mdgriffith$elm_ui$Element$spacing = function (x) {
+	return A2(
+		mdgriffith$elm_ui$Internal$Model$StyleClass,
+		mdgriffith$elm_ui$Internal$Flag$spacing,
+		A3(
+			mdgriffith$elm_ui$Internal$Model$SpacingStyle,
+			A2(mdgriffith$elm_ui$Internal$Model$spacingName, x, x),
+			x,
+			x));
+};
+var mdgriffith$elm_ui$Internal$Model$Describe = function (a) {
+	return {$: 'Describe', a: a};
+};
+var mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 'Paragraph'};
+var mdgriffith$elm_ui$Element$paragraph = F2(
+	function (attrs, children) {
+		return A4(
+			mdgriffith$elm_ui$Internal$Model$element,
+			mdgriffith$elm_ui$Internal$Model$asParagraph,
+			mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$elm_ui$Internal$Model$Describe(mdgriffith$elm_ui$Internal$Model$Paragraph),
+				A2(
+					elm$core$List$cons,
+					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+					A2(
+						elm$core$List$cons,
+						mdgriffith$elm_ui$Element$spacing(5),
+						attrs))),
+			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
+	});
 var mdgriffith$elm_ui$Element$rgb = F3(
 	function (r, g, b) {
 		return A4(mdgriffith$elm_ui$Internal$Model$Rgba, r, g, b, 1);
@@ -12123,25 +13857,6 @@ var mdgriffith$elm_ui$Element$row = F2(
 						attrs))),
 			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
-var mdgriffith$elm_ui$Internal$Flag$spacing = mdgriffith$elm_ui$Internal$Flag$flag(3);
-var mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
-	function (a, b, c) {
-		return {$: 'SpacingStyle', a: a, b: b, c: c};
-	});
-var mdgriffith$elm_ui$Internal$Model$spacingName = F2(
-	function (x, y) {
-		return 'spacing-' + (elm$core$String$fromInt(x) + ('-' + elm$core$String$fromInt(y)));
-	});
-var mdgriffith$elm_ui$Element$spacing = function (x) {
-	return A2(
-		mdgriffith$elm_ui$Internal$Model$StyleClass,
-		mdgriffith$elm_ui$Internal$Flag$spacing,
-		A3(
-			mdgriffith$elm_ui$Internal$Model$SpacingStyle,
-			A2(mdgriffith$elm_ui$Internal$Model$spacingName, x, x),
-			x,
-			x));
-};
 var mdgriffith$elm_ui$Internal$Model$Text = function (a) {
 	return {$: 'Text', a: a};
 };
@@ -12158,6 +13873,12 @@ var mdgriffith$elm_ui$Element$Background$color = function (clr) {
 			'background-color',
 			clr));
 };
+var mdgriffith$elm_ui$Internal$Flag$fontWeight = mdgriffith$elm_ui$Internal$Flag$flag(13);
+var mdgriffith$elm_ui$Internal$Model$Class = F2(
+	function (a, b) {
+		return {$: 'Class', a: a, b: b};
+	});
+var mdgriffith$elm_ui$Element$Font$bold = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$fontWeight, mdgriffith$elm_ui$Internal$Style$classes.bold);
 var author$project$Main$view = function (model) {
 	var vBox = elm$svg$Svg$Attributes$viewBox(
 		'0 0 ' + (elm$core$String$fromFloat(author$project$Main$canvasSize.width) + (' ' + elm$core$String$fromFloat(author$project$Main$canvasSize.height))));
@@ -12166,11 +13887,9 @@ var author$project$Main$view = function (model) {
 	var mouseY = elm$core$String$fromInt(model.pointerPosition.y);
 	var mouseX = elm$core$String$fromInt(model.pointerPosition.x);
 	var linesToDraw = author$project$Main$pathToSvg(model.path);
-	return A6(
+	return A4(
 		elm$core$Debug$log,
-		model.recognizedSymbol,
-		elm$core$Debug$log,
-		elm$core$Debug$toString(model.curvePath),
+		elm$core$Debug$toString(model.directionsPath),
 		mdgriffith$elm_ui$Element$layout,
 		_List_Nil,
 		A2(
@@ -12181,24 +13900,54 @@ var author$project$Main$view = function (model) {
 					A3(mdgriffith$elm_ui$Element$rgb, 253, 246, 227)),
 					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
 					mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$fill),
-					mdgriffith$elm_ui$Element$spacing(0)
+					mdgriffith$elm_ui$Element$spacing(10),
+					mdgriffith$elm_ui$Element$centerX
 				]),
 			_List_fromArray(
 				[
-					mdgriffith$elm_ui$Element$text(
-					'Number of Points : ' + elm$core$String$fromInt(
-						elm$core$Array$length(model.path))),
-					mdgriffith$elm_ui$Element$text('Current Coordinates: ' + ('x: ' + (mouseX + ('y: ' + mouseY)))),
+					A2(
+					mdgriffith$elm_ui$Element$paragraph,
+					_List_Nil,
+					_List_fromArray(
+						[
+							A2(
+							mdgriffith$elm_ui$Element$el,
+							_List_fromArray(
+								[mdgriffith$elm_ui$Element$centerX, mdgriffith$elm_ui$Element$Font$bold]),
+							mdgriffith$elm_ui$Element$text(
+								'Number of Points: ' + elm$core$String$fromInt(
+									elm$core$Array$length(model.path)))),
+							A2(
+							mdgriffith$elm_ui$Element$el,
+							_List_fromArray(
+								[mdgriffith$elm_ui$Element$centerX, mdgriffith$elm_ui$Element$Font$bold]),
+							mdgriffith$elm_ui$Element$text('Current Coordinates: ' + ('x: ' + (mouseX + (' y: ' + mouseY)))))
+						])),
 					A2(
 					mdgriffith$elm_ui$Element$row,
-					_List_Nil,
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$padding(20),
+							mdgriffith$elm_ui$Element$centerX,
+							mdgriffith$elm_ui$Element$spacing(10)
+						]),
 					_List_fromArray(
 						[
 							A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, linesToDraw),
 							A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, smoothedLines),
 							A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, thinnedLines)
 						])),
-					mdgriffith$elm_ui$Element$text(model.recognizedSymbol)
+					A2(
+					mdgriffith$elm_ui$Element$paragraph,
+					_List_Nil,
+					_List_fromArray(
+						[
+							A2(
+							mdgriffith$elm_ui$Element$el,
+							_List_fromArray(
+								[mdgriffith$elm_ui$Element$centerX, mdgriffith$elm_ui$Element$Font$bold]),
+							mdgriffith$elm_ui$Element$text('Symbol: ' + model.recognizedSymbol))
+						]))
 				])));
 };
 var elm$browser$Browser$External = function (a) {

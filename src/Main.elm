@@ -66,7 +66,7 @@ initialModel _ =
       , currentlyDrawing = False
       , pointerPosition = Position 0 0
       , smoothingFactor = 0.75
-      , thinningFactor = 3
+      , thinningFactor = 2
       , cornerThreshold = 110
       , startingCoordinates = ( 0, 0 )
       , endingCoordinates = ( 0, 0 )
@@ -229,13 +229,9 @@ view model =
         thinnedLines =
             pathToSvg model.thinnedPath
     in
-    Debug.log (Debug.toString model.directionsPath)
---    Debug.log model.recognizedSymbol
---              Debug.log ("startCoord: " ++ Debug.toString model.startingCoordinates)
---              Debug.log ("endCoord: " ++ Debug.toString model.endingCoordinates)
-        --    Debug.log (Debug.toString model.corners)
---        Debug.log
---        (Debug.toString model.directionsPath)
+--    Debug.log (Debug.toString model.directionsPath)
+--    Debug.log (Debug.toString model.corners)
+--    Debug.log (Debug.toString model.directionsPath)
         --    <|
         Element.layout
         []
@@ -268,7 +264,6 @@ view model =
                     ]
                     (Element.text <| "Symbol: " ++ model.recognizedSymbol)
                 ]
-
             --        , mouseCircle mouseX mouseY
             ]
 
