@@ -204,8 +204,8 @@ convertFromPolarToDirection deg =
     else if (degrees 233 <= deg) && (deg < degrees 307) then
         DOWN
 
-    else if (degrees 323 <= deg) && (deg < 37) then
-        LEFT
+    else if (degrees 323 <= deg) || (deg <= degrees 37)
+    then LEFT
 
     else
         DISCARDED
