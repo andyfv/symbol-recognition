@@ -43,11 +43,9 @@ smoothing rawPoints smoothedPoints sf newPoint =
                 Tuple.mapBoth toFloat toFloat previousSmoothedPoint
 
             -- 5. Calculate next smoothed point
-            xSi =
-                (sf * xSi_sub_1) + ((1 - sf) * xRi)
+            xSi = (sf * xSi_sub_1) + ((1 - sf) * xRi)
+            ySi = (sf * ySi_sub_1) + ((1 - sf) * yRi)
 
-            ySi =
-                (sf * ySi_sub_1) + ((1 - sf) * yRi)
         in
         -- 6. Add the last smoothed point to the smoothedList
         Array.push (Tuple.mapBoth round round ( xSi, ySi )) smoothedPoints
@@ -64,11 +62,9 @@ smoothing rawPoints smoothedPoints sf newPoint =
 thinning : Array Point -> Array Point -> Int -> Array Point
 thinning smoothedPoints thinnedPoints tf =
     let
-        numberOfSmoothedPoints =
-            Array.length smoothedPoints
+        numberOfSmoothedPoints = Array.length smoothedPoints
 
-        numberOfThinnedPoints =
-            Array.length thinnedPoints
+        numberOfThinnedPoints = Array.length thinnedPoints
     in
     if Array.length thinnedPoints >= 1 then
         let
@@ -88,7 +84,7 @@ thinning smoothedPoints thinnedPoints tf =
         -- and last thinned Point is larger than the thinningFactor (tf)
         if
             (abs (xSi - xTj_sub_1) >= tf)
-                || (abs (ySi - yTj_sub_1) >= tf)
+            || (abs (ySi - yTj_sub_1) >= tf)
         then
             -- 4. if the difference is larger add the last smoothed Point to
             -- thinnedPath
@@ -116,11 +112,9 @@ thinning smoothedPoints thinnedPoints tf =
 getDirections : Array Point -> Array Direction -> Array Direction
 getDirections thinnedPath directionPath =
     let
-        numberOfThinnedPoints =
-            Array.length thinnedPath
+        numberOfThinnedPoints = Array.length thinnedPath
 
-        numberOfDirections =
-            Array.length directionPath
+        numberOfDirections = Array.length directionPath
 
         xy_Tj =
             fromMaybePoint <| Array.get (numberOfThinnedPoints - 1) thinnedPath
@@ -128,26 +122,26 @@ getDirections thinnedPath directionPath =
         xy_Tj_sub_1 =
             fromMaybePoint <| Array.get (numberOfThinnedPoints - 2) thinnedPath
 
-        deg =
-            convertFromCartesianToPolar xy_Tj xy_Tj_sub_1
+        deg = convertFromCartesianToPolar xy_Tj xy_Tj_sub_1
 
-        direction =
-            convertFromPolarToDirection deg
+        direction = convertFromPolarToDirection deg
+
+
     in
     if
         (numberOfThinnedPoints >= 2 )
         && (numberOfDirections < 6)
         && (direction /= DISCARDED)
     then
-        if Array.isEmpty directionPath then
-            Array.push direction directionPath
+        if Array.isEmpty directionPath
+        then Array.push direction directionPath
 
         else
             let lastDirection =
                     fromMaybeDirection <| Array.get (numberOfDirections - 1) directionPath
             in
-            if lastDirection == direction then
-                directionPath
+            if lastDirection == direction
+            then directionPath
 
             else Array.push direction directionPath
 
@@ -158,24 +152,19 @@ getDirections thinnedPath directionPath =
 convertFromCartesianToPolar : Point -> Point -> Float
 convertFromCartesianToPolar ( xTj, yTj ) ( xTj_sub_1, yTj_sub_1 ) =
     let
-        x =
-            toFloat <| (xTj_sub_1 - xTj)
+        x = toFloat <| (xTj_sub_1 - xTj)
+        y = toFloat <| (yTj_sub_1 - yTj)
 
-        y =
-            toFloat <| (yTj_sub_1 - yTj)
+        theta_rad = atan2 y x
 
-        theta_rad =
-            atan2 y x
-
+        -- Since atan2 returns negative values for III and IV quadrant
+        -- just add 2*pi if the return value is negative
+        -- to convert it to '0 - 360' polar system
         theta_degree =
-            -- Since atan2 returns negative values for III and IV quadrant
-            -- just add 2*pi if the return value is negative
-            -- to convert it to '0 - 360' polar system
-            if theta_rad < 0 then
-                theta_rad + (2 * pi)
+            if theta_rad <= 0
+            then theta_rad + (2 * pi)
 
-            else
-                theta_rad
+            else theta_rad
     in
     theta_degree
 
@@ -195,20 +184,19 @@ convertFromCartesianToPolar ( xTj, yTj ) ( xTj_sub_1, yTj_sub_1 ) =
 -}
 convertFromPolarToDirection : Float -> Direction
 convertFromPolarToDirection deg =
-    if (degrees 53 <= deg) && (deg < degrees 137) then
-        UP
+    if (degrees 53 <= deg) && (deg <= degrees 137)
+    then UP
 
-    else if (degrees 143 <= deg) && (deg < degrees 217) then
-        RIGHT
+    else if (degrees 143 <= deg) && (deg <= degrees 217)
+    then RIGHT
 
-    else if (degrees 233 <= deg) && (deg < degrees 307) then
-        DOWN
+    else if (degrees 233 <= deg) && (deg <= degrees 307)
+    then DOWN
 
     else if (degrees 323 <= deg) || (deg <= degrees 37)
     then LEFT
 
-    else
-        DISCARDED
+    else DISCARDED
 
 
 
@@ -218,87 +206,53 @@ convertFromPolarToDirection deg =
 detectCorners : Array Point -> Array Point -> Float -> Array Point
 detectCorners thinnedPoints cornersPoints cornerThreshold =
     let
-        numberOfThinnedPoints =
-            Array.length thinnedPoints
+        numberOfThinnedPoints = Array.length thinnedPoints
     in
     if numberOfThinnedPoints > 5 then
         let
             -- Get last 5 thinned points
-            xyTj =
-                getPointReversed thinnedPoints numberOfThinnedPoints 0
-
-            xyTj_sub_1 =
-                getPointReversed thinnedPoints numberOfThinnedPoints 1
-
-            xyTj_sub_2 =
-                getPointReversed thinnedPoints numberOfThinnedPoints 2
-
-            xyTj_sub_3 =
-                getPointReversed thinnedPoints numberOfThinnedPoints 3
-
-            xyTj_sub_4 =
-                getPointReversed thinnedPoints numberOfThinnedPoints 4
+            xyTj = getPointReversed thinnedPoints numberOfThinnedPoints 0
+            xyTj_sub_1 = getPointReversed thinnedPoints numberOfThinnedPoints 1
+            xyTj_sub_2 = getPointReversed thinnedPoints numberOfThinnedPoints 2
+            xyTj_sub_3 = getPointReversed thinnedPoints numberOfThinnedPoints 3
+            xyTj_sub_4 = getPointReversed thinnedPoints numberOfThinnedPoints 4
 
             -- Get the vectors based on the last 5 points
-            vec1 =
-                getVector xyTj xyTj_sub_1
+            vec1 = getVector xyTj xyTj_sub_1
+            vec2 = getVector xyTj_sub_1 xyTj_sub_2
+            vec3 = getVector xyTj_sub_3 xyTj_sub_2
+            vec4 = getVector xyTj_sub_4 xyTj_sub_3
 
-            vec2 =
-                getVector xyTj_sub_1 xyTj_sub_2
-
-            vec3 =
-                getVector xyTj_sub_3 xyTj_sub_2
-
-            vec4 =
-                getVector xyTj_sub_4 xyTj_sub_3
-
-            angleBetweenVec1Vec2 =
-                getAngleBetweenTwoVectors vec1 vec2
-
-            angleBetweenVec3Vec4 =
-                getAngleBetweenTwoVectors vec3 vec4
-
-            angleBetweenVec1Vec3 =
-                getAngleBetweenTwoVectors vec1 vec3
+            angleBetweenVec1Vec2 = getAngleBetweenTwoVectors vec1 vec2
+            angleBetweenVec3Vec4 = getAngleBetweenTwoVectors vec3 vec4
+            angleBetweenVec1Vec4 = getAngleBetweenTwoVectors vec1 vec4
         in
         if
-            angleBetweenVec1Vec2
-                <= degrees 45
-                && angleBetweenVec3Vec4
-                <= degrees 45
-                && angleBetweenVec1Vec3
-                <= degrees cornerThreshold
-                && checkForDuplicate cornersPoints xyTj_sub_2
-                == False
-        then
-            Array.push xyTj_sub_2 cornersPoints
+            angleBetweenVec1Vec2 <= degrees 45
+            && angleBetweenVec3Vec4 <= degrees 45
+            && angleBetweenVec1Vec4 <= degrees cornerThreshold
+            && checkForDuplicate cornersPoints xyTj_sub_2 == False
+        then Array.push xyTj_sub_2 cornersPoints
 
-        else
-            cornersPoints
+        else cornersPoints
 
-    else
-        cornersPoints
+    else cornersPoints
 
 
 checkForDuplicate : Array Point -> Point -> Bool
 checkForDuplicate cornerPoints newCorner =
     let
-        numberOfCorners =
-            Array.length cornerPoints
+        numberOfCorners = Array.length cornerPoints
     in
-    if numberOfCorners == 0 then
-        False
-
+        if numberOfCorners == 0
+    then False
     else
         let
-            lastCorner =
-                getPointReversed cornerPoints numberOfCorners 0
+            lastCorner = getPointReversed cornerPoints numberOfCorners 0
         in
-        if lastCorner /= newCorner then
-            False
-
-        else
-            True
+            if lastCorner /= newCorner
+            then False
+            else True
 
 
 getVector : Point -> Point -> ( Float, Float )
@@ -307,14 +261,12 @@ getVector ( xTj, yTj ) ( xTj_sub_1, yTj_sub_1 ) =
         --        x = toFloat <| if xTj > xTj_sub_1
         --            then   (xTj - xTj_sub_1)
         --            else   -(xTj - xTj_sub_1)
-        x =
-            toFloat (xTj - xTj_sub_1)
+        x = toFloat (xTj - xTj_sub_1)
 
         --        y = toFloat <| if yTj > yTj_sub_1
         --            then   -(yTj - yTj_sub_1)
         --            else   (yTj - yTj_sub_1)
-        y =
-            toFloat (yTj_sub_1 - yTj)
+        y = toFloat (yTj_sub_1 - yTj)
     in
     ( x, y )
 
@@ -322,14 +274,11 @@ getVector ( xTj, yTj ) ( xTj_sub_1, yTj_sub_1 ) =
 getAngleBetweenTwoVectors : ( Float, Float ) -> ( Float, Float ) -> Float
 getAngleBetweenTwoVectors ( xA, yA ) ( xB, yB ) =
     let
-        dotProduct =
-            (xA * xB) + (yA * yB)
+        dotProduct = (xA * xB) + (yA * yB)
 
-        vectorMagnitudeA =
-            sqrt ((xA ^ 2) + (yA ^ 2))
+        vectorMagnitudeA = sqrt ((xA ^ 2) + (yA ^ 2))
 
-        vectorMagnitudeB =
-            sqrt ((xB ^ 2) + (yB ^ 2))
+        vectorMagnitudeB = sqrt ((xB ^ 2) + (yB ^ 2))
     in
     acos (dotProduct / (vectorMagnitudeA * vectorMagnitudeB))
 
@@ -353,32 +302,18 @@ getStartAndEndPosition thinnedInput =
         endingPositon =
             fromMaybePoint <| Array.get (Array.length thinnedInput - 1) thinnedInput
 
-        listThinnedInput =
-            toList thinnedInput
+        listThinnedInput = toList thinnedInput
 
-        listX =
-            List.map (\( x, _ ) -> x) listThinnedInput
+        listX = List.map (\( x, _ ) -> x) listThinnedInput
+        listY = List.map (\( _, y ) -> y) listThinnedInput
 
-        listY =
-            List.map (\( _, y ) -> y) listThinnedInput
+        left = fromMaybeNumber <| List.minimum listX
+        right = fromMaybeNumber <| List.maximum listX
+        top = fromMaybeNumber <| List.minimum listY
+        bottom = fromMaybeNumber <| List.maximum listY
 
-        left =
-            fromMaybeNumber <| List.minimum listX
-
-        right =
-            fromMaybeNumber <| List.maximum listX
-
-        top =
-            fromMaybeNumber <| List.minimum listY
-
-        bottom =
-            fromMaybeNumber <| List.maximum listY
-
-        width =
-            right - left
-
-        height =
-            bottom - top
+        width = right - left
+        height = bottom - top
 
         extremes : Extremes
         extremes =
@@ -390,11 +325,8 @@ getStartAndEndPosition thinnedInput =
             , height = toFloat height
             }
 
-        startPointQuadrant =
-            getPositionQuadrant startingPositon extremes
-
-        endPointQuadrant =
-            getPositionQuadrant endingPositon extremes
+        startPointQuadrant = getPositionQuadrant startingPositon extremes
+        endPointQuadrant = getPositionQuadrant endingPositon extremes
     in
     Debug.log (Debug.toString (startPointQuadrant, endPointQuadrant))
     ( startPointQuadrant, endPointQuadrant )
@@ -403,33 +335,28 @@ getStartAndEndPosition thinnedInput =
 getPositionQuadrant : Point -> Extremes -> Quadrant
 getPositionQuadrant ( x, y ) extremes =
     let
-        halfWidth =
-            extremes.width / 2
+        halfWidth = extremes.width / 2
 
-        halfHeight =
-            extremes.height / 2
+        halfHeight = extremes.height / 2
     in
     if
-        y
-            <= floor (extremes.bottom - halfHeight)
-            && x
-            <= floor (extremes.right - halfWidth)
+        y <= floor (extremes.bottom - halfHeight)
+        &&
+        x <= floor (extremes.right - halfWidth)
     then
         II
 
     else if
-        x
-            < floor (extremes.right - halfWidth)
-            && y
-            > floor (extremes.bottom - halfHeight)
+        x < floor (extremes.right - halfWidth)
+        &&
+        y > floor (extremes.bottom - halfHeight)
     then
         III
 
     else if
-        x
-            >= floor (extremes.right - halfWidth)
-            && y
-            >= floor (extremes.bottom - halfHeight)
+        x >= floor (extremes.right - halfWidth)
+        &&
+        y >= floor (extremes.bottom - halfHeight)
     then
         IV
         --    else x > (extremes.right - (extremes.width / 2))
@@ -442,21 +369,16 @@ getPositionQuadrant ( x, y ) extremes =
 recognizeSymbol : Symbol -> String
 recognizeSymbol symbol =
     let
-        firstDirection =
-            fromMaybeDirection <| List.head symbol.mainDirections
+        firstDirection = fromMaybeDirection <| List.head symbol.mainDirections
     in
     case firstDirection of
-        DOWN ->
-            recognizeSymbolDown symbol
+        DOWN -> recognizeSymbolDOWN symbol
 
-        UP ->
-            recognizeSymbolUp symbol
+        UP -> recognizeSymbolUP symbol
 
-        LEFT ->
-            recognizeSymbolLeft symbol
+        LEFT -> recognizeSymbolLEFT symbol
 
-        RIGHT ->
-            recognizeSymbolRight symbol
+        RIGHT ->recognizeSymbolRIGHT symbol
 
         _ ->
             "Not Recognized"
@@ -466,7 +388,7 @@ conditioningDirections : Array Direction -> Array Direction
 conditioningDirections directions =
     let directionLength = 6 - (Array.length directions)
     in
-        if Array.length directions == 0 then
-            directions
+        if Array.length directions == 0
+        then directions
 
         else Array.append directions (Array.repeat directionLength EMPTY)
