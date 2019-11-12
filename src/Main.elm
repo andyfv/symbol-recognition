@@ -229,7 +229,7 @@ view model =
         thinnedLines =
             pathToSvg model.thinnedPath
     in
-    Debug.log (Debug.toString model.directionsPath)
+--    Debug.log (Debug.toString model.directionsPath)
 --    Debug.log (Debug.toString model.corners)
 --    Debug.log (Debug.toString model.directionsPath)
         --    <|

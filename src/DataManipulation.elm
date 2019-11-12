@@ -328,7 +328,7 @@ getStartAndEndPosition thinnedInput =
         startPointQuadrant = getPositionQuadrant startingPositon extremes
         endPointQuadrant = getPositionQuadrant endingPositon extremes
     in
-    Debug.log (Debug.toString (startPointQuadrant, endPointQuadrant))
+--    Debug.log (Debug.toString (startPointQuadrant, endPointQuadrant))
     ( startPointQuadrant, endPointQuadrant )
 
 
