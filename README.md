@@ -12,7 +12,8 @@
 
 The **Symbol Recognition** project is Web app written in Elm. 
 You can handwrite symbols (the letters from A-Z and numbers 1-9) on
-the canvas and get it recognized. Using this.The project is inspired by one of the most 
+the canvas and get it recognized. Second point of the project is to use the time-sequenced
+ symbol recognition for gesture navigation UI .The project is inspired by one of the most 
 productive studies in HCI - The [GRAIL/BIOMOD system](https://www.youtube.com/watch?v=2Cq8S3jzJiQ).
 
 ![GRAIL System](img/GRAIL_system.png)
@@ -56,7 +57,7 @@ the number of data-points."
 #### 4) Curvature
 
 This test assigned a *direction* to each point so the stroke/symbol can be represented by 
-a sequence of directions - eg. _DOWN, RIGHT, UP, LEFT, RIGHT_. 
+a sequence of directions - eg. RIGHT, DOWN, RIGHT, DOWN which results in the number 3. 
 
 "If the same direction occurs twice in succession, and it is not the same as the last 
 direction listed in the sequence, then it is added to the list; otherwise it is discarded." 
@@ -65,7 +66,7 @@ direction listed in the sequence, then it is added to the list; otherwise it is 
 #### 5) Corner Detection
 
 A corner is detected whenever the pen is moves in the same direction for at least 
-two segements(line between two points), changes direction by at least 90°, and 
+two segements, changes direction by at least 90°, and 
 then proceeds along the new direction for at least two segments.
 
 #### 6) Additional features (Partially implemented, but not used yet)
@@ -78,7 +79,7 @@ Additional features were used in the original, such as the size, position and ra
 
 ## How to run it
 
-####[Open the Link](https://andyfv.github.io/symbol-recognition/)
+#### [Open the Link](https://andyfv.github.io/symbol-recognition/)
 
 <br>
 
@@ -108,7 +109,6 @@ Below is the table of the symbols and their one-stroke representation.
 * mdgriffith/elm-ui
 * elm/svg
 
-***
 
 ## TODO
 
@@ -122,4 +122,4 @@ There is a lot to be done:
 
 ## Issues
 
-* In Firefox where the cursor is constantly jumping to top-left of the canvas.
+* In Firefox the cursor is constantly jumping to top-left of the canvas.
