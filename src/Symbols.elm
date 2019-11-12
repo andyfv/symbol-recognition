@@ -257,7 +257,7 @@ recognizeSymbolDOWN symbol =
         mainDirections = symbol.mainDirections
     in
     case mainDirections of
-        [ DOWN ] -> "I"
+        [ DOWN, EMPTY, EMPTY, EMPTY ] -> "I"
 
         [ DOWN, UP, EMPTY, EMPTY ] -> "V"
 
@@ -348,6 +348,8 @@ rec_DURU symbol =
             [ DOWN, UP ] -> "K"
             [ RIGHT, DOWN ] -> "K"
             [ DOWN, RIGHT ] -> "K"
+            [ DOWN, EMPTY ] -> "H"
+            [ LEFT, DOWN ] -> "H"
             _ -> "Not recognized"
 
 
