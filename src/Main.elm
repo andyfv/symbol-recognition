@@ -3,16 +3,16 @@ module Main exposing (main)
 import Array exposing (Array)
 import Browser
 import DataManipulation exposing (..)
-import Element as Element exposing (..)
+import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Html exposing (Html)
-import Html.Attributes exposing (..)
+import Html.Attributes as HtmlAttributes
 import Html.Events exposing (custom, on, onMouseDown, onMouseUp)
 import Json.Decode as Json exposing (..)
 import Svg exposing (mpath, svg)
-import Svg.Attributes exposing (..)
+import Svg.Attributes as SvgAttributes
 import Types exposing (..)
 
 
@@ -30,8 +30,8 @@ main =
 
 
 canvasSize =
-    { width = 300
-    , height = 400
+    { width = 250
+    , height = 300
     }
 
 
@@ -214,7 +214,7 @@ view model =
             String.fromInt model.pointerPosition.y
 
         vBox =
-            viewBox <|
+            SvgAttributes.viewBox <|
                 "0 0 "
                     ++ String.fromFloat canvasSize.width
                     ++ " "
@@ -229,40 +229,46 @@ view model =
         thinnedLines =
             pathToSvg model.thinnedPath
     in
---    Debug.log (Debug.toString model.directionsPath)
+    Debug.log (Debug.toString model.directionsPath)
 --    Debug.log (Debug.toString model.corners)
 --    Debug.log (Debug.toString model.directionsPath)
         --    <|
-        Element.layout
+        layout
         []
     <|
-        Element.column
+        column
             [ Background.color (rgb 253 246 227)
-            , Element.width Element.fill
-            , Element.height Element.fill
-            , Element.spacing 10
-            , Element.centerX
+            , width fill
+            , height fill
+            , spacing 10
+            , centerX
             ]
-            [ Element.paragraph []
-                [ Element.el [ Element.centerX , Font.bold ] (Element.text <| "Number of Points: " ++ (String.fromInt <| Array.length model.path))
-                , Element.el [Element.centerX , Font.bold] (Element.text <|
-                    "Current Coordinates: "
-                      ++ "x: "
-                      ++ mouseX
-                      ++ " y: "
-                      ++ mouseY)
-                ]
-            , Element.row [ Element.padding 20, Element.centerX, Element.spacing 10]
-                [ drawingBox vBox mouseX mouseY linesToDraw
-                , drawingBox vBox mouseX mouseY smoothedLines
-                , drawingBox vBox mouseX mouseY thinnedLines
-                ]
-            , Element.paragraph []
-                [ Element.el
-                    [ Element.centerX
-                    , Font.bold
+            [ column [centerX, width (px 300), padding 10]
+                [ row [ Font.bold ] [text <| "Number of Points: " ++ (String.fromInt <| Array.length model.path)]
+                , row [ Font.bold, height (px 50)]
+                    [ text "Current Coordinates: "
+                    , column []
+                        [ text <| "x: " ++ mouseX
+                        , text <| "y: " ++ mouseY
+                        ]
                     ]
-                    (Element.text <| "Symbol: " ++ model.recognizedSymbol)
+                , row [centerX, width fill, Font.bold]
+                                [text <| "Symbol: " ++ model.recognizedSymbol]
+                ]
+            , row
+                [ padding 20
+                , centerX
+                , spacing 10
+                ]
+                [ column []
+                    [ el [centerX] (text "Raw Input")
+                    , drawingBox vBox mouseX mouseY linesToDraw]
+                , column []
+                    [ el [centerX] (text "Smoothed Input")
+                    , drawingBox vBox mouseX mouseY smoothedLines]
+                , column []
+                    [ el [centerX] (text "Thinned Input")
+                    , drawingBox vBox mouseX mouseY thinnedLines]
                 ]
             --        , mouseCircle mouseX mouseY
             ]
@@ -279,10 +285,10 @@ pathToSvg points =
             "grey"
     in
     Svg.polyline
-        [ Svg.Attributes.points x
-        , Svg.Attributes.fill "none"
-        , stroke polyColor
-        , strokeWidth "3"
+        [ SvgAttributes.points x
+        , SvgAttributes.fill "none"
+        , SvgAttributes.stroke polyColor
+        , SvgAttributes.strokeWidth "3"
         ]
         []
 
@@ -292,10 +298,10 @@ drawingBox vBox mouseX mouseY linesToDraw =
     Element.html <|
         Svg.svg
             [ vBox
-            , Svg.Attributes.width <| String.fromInt canvasSize.width ++ "px"
-            , Svg.Attributes.height <| String.fromInt canvasSize.height ++ "px"
-            , Html.Attributes.style "border" "5px solid grey"
-            , Html.Attributes.style "border-radius" "5px"
+            , SvgAttributes.width <| String.fromInt canvasSize.width ++ "px"
+            , SvgAttributes.height <| String.fromInt canvasSize.height ++ "px"
+            , HtmlAttributes.style "border" "5px solid grey"
+            , HtmlAttributes.style "border-radius" "5px"
 
             -- , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
             -- , Html.Events.on "mousedown" (Json.map DrawStart mouseCoord)
@@ -305,19 +311,19 @@ drawingBox vBox mouseX mouseY linesToDraw =
             , Html.Events.stopPropagationOn "mousemove" offsetPosition
             ]
             [ Svg.rect
-                [ Svg.Attributes.width <| String.fromInt canvasSize.width
-                , Svg.Attributes.height <| String.fromInt canvasSize.height
-                , Svg.Attributes.fill "#fdf6e3"
-                , Svg.Attributes.x "0"
-                , Svg.Attributes.y "0"
+                [ SvgAttributes.width <| String.fromInt canvasSize.width
+                , SvgAttributes.height <| String.fromInt canvasSize.height
+                , SvgAttributes.fill "#fdf6e3"
+                , SvgAttributes.x "0"
+                , SvgAttributes.y "0"
                 ]
                 []
             , Svg.circle
-                [ cx mouseX
-                , cy mouseY
-                , r "10"
-                , Svg.Attributes.fill "#fd635e"
-                , Svg.Attributes.opacity "0.7"
+                [ SvgAttributes.cx mouseX
+                , SvgAttributes.cy mouseY
+                , SvgAttributes.r "10"
+                , SvgAttributes.fill "#fd635e"
+                , SvgAttributes.opacity "0.7"
                 ]
                 []
             , linesToDraw
