@@ -5772,7 +5772,7 @@ var author$project$Symbols$rec_DURU = function (symbol) {
 	var secondaryDirections = symbol.secondaryDirections;
 	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
 	var numberOfCorners = elm$core$Array$length(symbol.corners);
-	_n0$4:
+	_n0$6:
 	while (true) {
 		if ((secondaryDirections.b && secondaryDirections.b.b) && (!secondaryDirections.b.b.b)) {
 			switch (secondaryDirections.a.$) {
@@ -5796,7 +5796,7 @@ var author$project$Symbols$rec_DURU = function (symbol) {
 							var _n10 = _n9.a;
 							return 'K';
 						default:
-							break _n0$4;
+							break _n0$6;
 					}
 				case 'DOWN':
 					switch (secondaryDirections.b.a.$) {
@@ -5810,14 +5810,28 @@ var author$project$Symbols$rec_DURU = function (symbol) {
 							var _n12 = secondaryDirections.b;
 							var _n13 = _n12.a;
 							return 'K';
+						case 'EMPTY':
+							var _n14 = secondaryDirections.a;
+							var _n15 = secondaryDirections.b;
+							var _n16 = _n15.a;
+							return 'H';
 						default:
-							break _n0$4;
+							break _n0$6;
+					}
+				case 'LEFT':
+					if (secondaryDirections.b.a.$ === 'DOWN') {
+						var _n17 = secondaryDirections.a;
+						var _n18 = secondaryDirections.b;
+						var _n19 = _n18.a;
+						return 'H';
+					} else {
+						break _n0$6;
 					}
 				default:
-					break _n0$4;
+					break _n0$6;
 			}
 		} else {
-			break _n0$4;
+			break _n0$6;
 		}
 	}
 	return 'Not recognized';
@@ -5826,212 +5840,216 @@ var author$project$Symbols$recognizeSymbolDOWN = function (symbol) {
 	var mainDirections = symbol.mainDirections;
 	_n0$16:
 	while (true) {
-		if (mainDirections.b && (mainDirections.a.$ === 'DOWN')) {
-			if (!mainDirections.b.b) {
-				var _n1 = mainDirections.a;
-				return 'I';
-			} else {
-				if ((mainDirections.b.b.b && mainDirections.b.b.b.b) && (!mainDirections.b.b.b.b.b)) {
-					switch (mainDirections.b.a.$) {
-						case 'UP':
-							switch (mainDirections.b.b.a.$) {
-								case 'EMPTY':
-									if (mainDirections.b.b.b.a.$ === 'EMPTY') {
-										var _n2 = mainDirections.a;
-										var _n3 = mainDirections.b;
-										var _n4 = _n3.a;
-										var _n5 = _n3.b;
-										var _n6 = _n5.a;
-										var _n7 = _n5.b;
-										var _n8 = _n7.a;
-										return 'V';
-									} else {
-										break _n0$16;
-									}
+		if (((((mainDirections.b && (mainDirections.a.$ === 'DOWN')) && mainDirections.b.b) && mainDirections.b.b.b) && mainDirections.b.b.b.b) && (!mainDirections.b.b.b.b.b)) {
+			switch (mainDirections.b.a.$) {
+				case 'EMPTY':
+					if ((mainDirections.b.b.a.$ === 'EMPTY') && (mainDirections.b.b.b.a.$ === 'EMPTY')) {
+						var _n1 = mainDirections.a;
+						var _n2 = mainDirections.b;
+						var _n3 = _n2.a;
+						var _n4 = _n2.b;
+						var _n5 = _n4.a;
+						var _n6 = _n4.b;
+						var _n7 = _n6.a;
+						return 'I';
+					} else {
+						break _n0$16;
+					}
+				case 'UP':
+					switch (mainDirections.b.b.a.$) {
+						case 'EMPTY':
+							if (mainDirections.b.b.b.a.$ === 'EMPTY') {
+								var _n8 = mainDirections.a;
+								var _n9 = mainDirections.b;
+								var _n10 = _n9.a;
+								var _n11 = _n9.b;
+								var _n12 = _n11.a;
+								var _n13 = _n11.b;
+								var _n14 = _n13.a;
+								return 'V';
+							} else {
+								break _n0$16;
+							}
+						case 'DOWN':
+							if (mainDirections.b.b.b.a.$ === 'RIGHT') {
+								var _n57 = mainDirections.a;
+								var _n58 = mainDirections.b;
+								var _n59 = _n58.a;
+								var _n60 = _n58.b;
+								var _n61 = _n60.a;
+								var _n62 = _n60.b;
+								var _n63 = _n62.a;
+								return author$project$Symbols$rec_DUDR(symbol);
+							} else {
+								break _n0$16;
+							}
+						case 'RIGHT':
+							switch (mainDirections.b.b.b.a.$) {
+								case 'UP':
+									var _n50 = mainDirections.a;
+									var _n51 = mainDirections.b;
+									var _n52 = _n51.a;
+									var _n53 = _n51.b;
+									var _n54 = _n53.a;
+									var _n55 = _n53.b;
+									var _n56 = _n55.a;
+									return author$project$Symbols$rec_DURU(symbol);
 								case 'DOWN':
-									if (mainDirections.b.b.b.a.$ === 'RIGHT') {
-										var _n51 = mainDirections.a;
-										var _n52 = mainDirections.b;
-										var _n53 = _n52.a;
-										var _n54 = _n52.b;
-										var _n55 = _n54.a;
-										var _n56 = _n54.b;
-										var _n57 = _n56.a;
-										return author$project$Symbols$rec_DUDR(symbol);
-									} else {
-										break _n0$16;
-									}
-								case 'RIGHT':
-									switch (mainDirections.b.b.b.a.$) {
-										case 'UP':
-											var _n44 = mainDirections.a;
-											var _n45 = mainDirections.b;
-											var _n46 = _n45.a;
-											var _n47 = _n45.b;
-											var _n48 = _n47.a;
-											var _n49 = _n47.b;
-											var _n50 = _n49.a;
-											return author$project$Symbols$rec_DURU(symbol);
-										case 'DOWN':
-											var _n58 = mainDirections.a;
-											var _n59 = mainDirections.b;
-											var _n60 = _n59.a;
-											var _n61 = _n59.b;
-											var _n62 = _n61.a;
-											var _n63 = _n61.b;
-											var _n64 = _n63.a;
-											return author$project$Symbols$rec_DURD(symbol);
-										default:
-											break _n0$16;
-									}
-								case 'LEFT':
-									if (mainDirections.b.b.b.a.$ === 'RIGHT') {
-										var _n65 = mainDirections.a;
-										var _n66 = mainDirections.b;
-										var _n67 = _n66.a;
-										var _n68 = _n66.b;
-										var _n69 = _n68.a;
-										var _n70 = _n68.b;
-										var _n71 = _n70.a;
-										return 'K';
-									} else {
-										break _n0$16;
-									}
+									var _n64 = mainDirections.a;
+									var _n65 = mainDirections.b;
+									var _n66 = _n65.a;
+									var _n67 = _n65.b;
+									var _n68 = _n67.a;
+									var _n69 = _n67.b;
+									var _n70 = _n69.a;
+									return author$project$Symbols$rec_DURD(symbol);
 								default:
 									break _n0$16;
 							}
 						case 'LEFT':
-							switch (mainDirections.b.b.a.$) {
-								case 'UP':
-									switch (mainDirections.b.b.b.a.$) {
-										case 'EMPTY':
-											var _n72 = mainDirections.a;
-											var _n73 = mainDirections.b;
-											var _n74 = _n73.a;
-											var _n75 = _n73.b;
-											var _n76 = _n75.a;
-											var _n77 = _n75.b;
-											var _n78 = _n77.a;
-											return 'X';
-										case 'RIGHT':
-											var _n86 = mainDirections.a;
-											var _n87 = mainDirections.b;
-											var _n88 = _n87.a;
-											var _n89 = _n87.b;
-											var _n90 = _n89.a;
-											var _n91 = _n89.b;
-											var _n92 = _n91.a;
-											return 'X';
-										default:
-											break _n0$16;
-									}
-								case 'RIGHT':
-									if (mainDirections.b.b.b.a.$ === 'UP') {
-										var _n93 = mainDirections.a;
-										var _n94 = mainDirections.b;
-										var _n95 = _n94.a;
-										var _n96 = _n94.b;
-										var _n97 = _n96.a;
-										var _n98 = _n96.b;
-										var _n99 = _n98.a;
-										return 'X';
-									} else {
-										break _n0$16;
-									}
-								default:
-									break _n0$16;
-							}
-						case 'RIGHT':
-							switch (mainDirections.b.b.a.$) {
-								case 'EMPTY':
-									if (mainDirections.b.b.b.a.$ === 'EMPTY') {
-										var _n16 = mainDirections.a;
-										var _n17 = mainDirections.b;
-										var _n18 = _n17.a;
-										var _n19 = _n17.b;
-										var _n20 = _n19.a;
-										var _n21 = _n19.b;
-										var _n22 = _n21.a;
-										return 'L';
-									} else {
-										break _n0$16;
-									}
-								case 'UP':
-									switch (mainDirections.b.b.b.a.$) {
-										case 'EMPTY':
-											var _n9 = mainDirections.a;
-											var _n10 = mainDirections.b;
-											var _n11 = _n10.a;
-											var _n12 = _n10.b;
-											var _n13 = _n12.a;
-											var _n14 = _n12.b;
-											var _n15 = _n14.a;
-											return author$project$Symbols$rec_DRUE(symbol);
-										case 'LEFT':
-											var _n23 = mainDirections.a;
-											var _n24 = mainDirections.b;
-											var _n25 = _n24.a;
-											var _n26 = _n24.b;
-											var _n27 = _n26.a;
-											var _n28 = _n26.b;
-											var _n29 = _n28.a;
-											return author$project$Symbols$rec_DRUL(symbol);
-										case 'DOWN':
-											var _n30 = mainDirections.a;
-											var _n31 = mainDirections.b;
-											var _n32 = _n31.a;
-											var _n33 = _n31.b;
-											var _n34 = _n33.a;
-											var _n35 = _n33.b;
-											var _n36 = _n35.a;
-											return author$project$Symbols$rec_DRUD(symbol);
-										case 'RIGHT':
-											var _n37 = mainDirections.a;
-											var _n38 = mainDirections.b;
-											var _n39 = _n38.a;
-											var _n40 = _n38.b;
-											var _n41 = _n40.a;
-											var _n42 = _n40.b;
-											var _n43 = _n42.a;
-											return author$project$Symbols$rec_DRUR(symbol);
-										default:
-											break _n0$16;
-									}
-								case 'DOWN':
-									if (mainDirections.b.b.b.a.$ === 'LEFT') {
-										var _n79 = mainDirections.a;
-										var _n80 = mainDirections.b;
-										var _n81 = _n80.a;
-										var _n82 = _n80.b;
-										var _n83 = _n82.a;
-										var _n84 = _n82.b;
-										var _n85 = _n84.a;
-										return 'X';
-									} else {
-										break _n0$16;
-									}
-								case 'LEFT':
-									if (mainDirections.b.b.b.a.$ === 'UP') {
-										var _n100 = mainDirections.a;
-										var _n101 = mainDirections.b;
-										var _n102 = _n101.a;
-										var _n103 = _n101.b;
-										var _n104 = _n103.a;
-										var _n105 = _n103.b;
-										var _n106 = _n105.a;
-										return 'X';
-									} else {
-										break _n0$16;
-									}
-								default:
-									break _n0$16;
+							if (mainDirections.b.b.b.a.$ === 'RIGHT') {
+								var _n71 = mainDirections.a;
+								var _n72 = mainDirections.b;
+								var _n73 = _n72.a;
+								var _n74 = _n72.b;
+								var _n75 = _n74.a;
+								var _n76 = _n74.b;
+								var _n77 = _n76.a;
+								return 'K';
+							} else {
+								break _n0$16;
 							}
 						default:
 							break _n0$16;
 					}
-				} else {
+				case 'LEFT':
+					switch (mainDirections.b.b.a.$) {
+						case 'UP':
+							switch (mainDirections.b.b.b.a.$) {
+								case 'EMPTY':
+									var _n78 = mainDirections.a;
+									var _n79 = mainDirections.b;
+									var _n80 = _n79.a;
+									var _n81 = _n79.b;
+									var _n82 = _n81.a;
+									var _n83 = _n81.b;
+									var _n84 = _n83.a;
+									return 'X';
+								case 'RIGHT':
+									var _n92 = mainDirections.a;
+									var _n93 = mainDirections.b;
+									var _n94 = _n93.a;
+									var _n95 = _n93.b;
+									var _n96 = _n95.a;
+									var _n97 = _n95.b;
+									var _n98 = _n97.a;
+									return 'X';
+								default:
+									break _n0$16;
+							}
+						case 'RIGHT':
+							if (mainDirections.b.b.b.a.$ === 'UP') {
+								var _n99 = mainDirections.a;
+								var _n100 = mainDirections.b;
+								var _n101 = _n100.a;
+								var _n102 = _n100.b;
+								var _n103 = _n102.a;
+								var _n104 = _n102.b;
+								var _n105 = _n104.a;
+								return 'X';
+							} else {
+								break _n0$16;
+							}
+						default:
+							break _n0$16;
+					}
+				case 'RIGHT':
+					switch (mainDirections.b.b.a.$) {
+						case 'EMPTY':
+							if (mainDirections.b.b.b.a.$ === 'EMPTY') {
+								var _n22 = mainDirections.a;
+								var _n23 = mainDirections.b;
+								var _n24 = _n23.a;
+								var _n25 = _n23.b;
+								var _n26 = _n25.a;
+								var _n27 = _n25.b;
+								var _n28 = _n27.a;
+								return 'L';
+							} else {
+								break _n0$16;
+							}
+						case 'UP':
+							switch (mainDirections.b.b.b.a.$) {
+								case 'EMPTY':
+									var _n15 = mainDirections.a;
+									var _n16 = mainDirections.b;
+									var _n17 = _n16.a;
+									var _n18 = _n16.b;
+									var _n19 = _n18.a;
+									var _n20 = _n18.b;
+									var _n21 = _n20.a;
+									return author$project$Symbols$rec_DRUE(symbol);
+								case 'LEFT':
+									var _n29 = mainDirections.a;
+									var _n30 = mainDirections.b;
+									var _n31 = _n30.a;
+									var _n32 = _n30.b;
+									var _n33 = _n32.a;
+									var _n34 = _n32.b;
+									var _n35 = _n34.a;
+									return author$project$Symbols$rec_DRUL(symbol);
+								case 'DOWN':
+									var _n36 = mainDirections.a;
+									var _n37 = mainDirections.b;
+									var _n38 = _n37.a;
+									var _n39 = _n37.b;
+									var _n40 = _n39.a;
+									var _n41 = _n39.b;
+									var _n42 = _n41.a;
+									return author$project$Symbols$rec_DRUD(symbol);
+								case 'RIGHT':
+									var _n43 = mainDirections.a;
+									var _n44 = mainDirections.b;
+									var _n45 = _n44.a;
+									var _n46 = _n44.b;
+									var _n47 = _n46.a;
+									var _n48 = _n46.b;
+									var _n49 = _n48.a;
+									return author$project$Symbols$rec_DRUR(symbol);
+								default:
+									break _n0$16;
+							}
+						case 'DOWN':
+							if (mainDirections.b.b.b.a.$ === 'LEFT') {
+								var _n85 = mainDirections.a;
+								var _n86 = mainDirections.b;
+								var _n87 = _n86.a;
+								var _n88 = _n86.b;
+								var _n89 = _n88.a;
+								var _n90 = _n88.b;
+								var _n91 = _n90.a;
+								return 'X';
+							} else {
+								break _n0$16;
+							}
+						case 'LEFT':
+							if (mainDirections.b.b.b.a.$ === 'UP') {
+								var _n106 = mainDirections.a;
+								var _n107 = mainDirections.b;
+								var _n108 = _n107.a;
+								var _n109 = _n107.b;
+								var _n110 = _n109.a;
+								var _n111 = _n109.b;
+								var _n112 = _n111.a;
+								return 'X';
+							} else {
+								break _n0$16;
+							}
+						default:
+							break _n0$16;
+					}
+				default:
 					break _n0$16;
-				}
 			}
 		} else {
 			break _n0$16;
@@ -7742,18 +7760,14 @@ var author$project$Main$update = F2(
 				var endQuadrant = _n2.b;
 				var symbol = {corners: model.corners, endQuadrant: endQuadrant, mainDirections: mainDirections, secondaryDirections: secondaryDirection, startQuadrant: startQuadrant};
 				var recognizedSymbol = author$project$DataManipulation$recognizeSymbol(symbol);
-				return A2(
-					elm$core$Debug$log,
-					elm$core$Debug$toString(
-						elm$core$Array$length(symbol.corners)),
-					_Utils_Tuple2(
-						_Utils_update(
-							model,
-							{currentlyDrawing: false, directionsPath: conditionedDirections, recognizedSymbol: recognizedSymbol}),
-						elm$core$Platform$Cmd$none));
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{currentlyDrawing: false, directionsPath: conditionedDirections, recognizedSymbol: recognizedSymbol}),
+					elm$core$Platform$Cmd$none);
 		}
 	});
-var author$project$Main$canvasSize = {height: 400, width: 300};
+var author$project$Main$canvasSize = {height: 300, width: 250};
 var author$project$Main$DrawEnd = {$: 'DrawEnd'};
 var author$project$Main$DrawStart = {$: 'DrawStart'};
 var author$project$Main$UpdatePointerPosition = function (a) {
@@ -13792,47 +13806,10 @@ var mdgriffith$elm_ui$Element$padding = function (x) {
 			x,
 			x));
 };
-var mdgriffith$elm_ui$Internal$Flag$spacing = mdgriffith$elm_ui$Internal$Flag$flag(3);
-var mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
-	function (a, b, c) {
-		return {$: 'SpacingStyle', a: a, b: b, c: c};
-	});
-var mdgriffith$elm_ui$Internal$Model$spacingName = F2(
-	function (x, y) {
-		return 'spacing-' + (elm$core$String$fromInt(x) + ('-' + elm$core$String$fromInt(y)));
-	});
-var mdgriffith$elm_ui$Element$spacing = function (x) {
-	return A2(
-		mdgriffith$elm_ui$Internal$Model$StyleClass,
-		mdgriffith$elm_ui$Internal$Flag$spacing,
-		A3(
-			mdgriffith$elm_ui$Internal$Model$SpacingStyle,
-			A2(mdgriffith$elm_ui$Internal$Model$spacingName, x, x),
-			x,
-			x));
+var mdgriffith$elm_ui$Internal$Model$Px = function (a) {
+	return {$: 'Px', a: a};
 };
-var mdgriffith$elm_ui$Internal$Model$Describe = function (a) {
-	return {$: 'Describe', a: a};
-};
-var mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 'Paragraph'};
-var mdgriffith$elm_ui$Element$paragraph = F2(
-	function (attrs, children) {
-		return A4(
-			mdgriffith$elm_ui$Internal$Model$element,
-			mdgriffith$elm_ui$Internal$Model$asParagraph,
-			mdgriffith$elm_ui$Internal$Model$div,
-			A2(
-				elm$core$List$cons,
-				mdgriffith$elm_ui$Internal$Model$Describe(mdgriffith$elm_ui$Internal$Model$Paragraph),
-				A2(
-					elm$core$List$cons,
-					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
-					A2(
-						elm$core$List$cons,
-						mdgriffith$elm_ui$Element$spacing(5),
-						attrs))),
-			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
-	});
+var mdgriffith$elm_ui$Element$px = mdgriffith$elm_ui$Internal$Model$Px;
 var mdgriffith$elm_ui$Element$rgb = F3(
 	function (r, g, b) {
 		return A4(mdgriffith$elm_ui$Internal$Model$Rgba, r, g, b, 1);
@@ -13857,6 +13834,25 @@ var mdgriffith$elm_ui$Element$row = F2(
 						attrs))),
 			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
+var mdgriffith$elm_ui$Internal$Flag$spacing = mdgriffith$elm_ui$Internal$Flag$flag(3);
+var mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
+	function (a, b, c) {
+		return {$: 'SpacingStyle', a: a, b: b, c: c};
+	});
+var mdgriffith$elm_ui$Internal$Model$spacingName = F2(
+	function (x, y) {
+		return 'spacing-' + (elm$core$String$fromInt(x) + ('-' + elm$core$String$fromInt(y)));
+	});
+var mdgriffith$elm_ui$Element$spacing = function (x) {
+	return A2(
+		mdgriffith$elm_ui$Internal$Model$StyleClass,
+		mdgriffith$elm_ui$Internal$Flag$spacing,
+		A3(
+			mdgriffith$elm_ui$Internal$Model$SpacingStyle,
+			A2(mdgriffith$elm_ui$Internal$Model$spacingName, x, x),
+			x,
+			x));
+};
 var mdgriffith$elm_ui$Internal$Model$Text = function (a) {
 	return {$: 'Text', a: a};
 };
@@ -13906,22 +13902,58 @@ var author$project$Main$view = function (model) {
 			_List_fromArray(
 				[
 					A2(
-					mdgriffith$elm_ui$Element$paragraph,
-					_List_Nil,
+					mdgriffith$elm_ui$Element$column,
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$centerX,
+							mdgriffith$elm_ui$Element$width(
+							mdgriffith$elm_ui$Element$px(300)),
+							mdgriffith$elm_ui$Element$padding(10)
+						]),
 					_List_fromArray(
 						[
 							A2(
-							mdgriffith$elm_ui$Element$el,
+							mdgriffith$elm_ui$Element$row,
 							_List_fromArray(
-								[mdgriffith$elm_ui$Element$centerX, mdgriffith$elm_ui$Element$Font$bold]),
-							mdgriffith$elm_ui$Element$text(
-								'Number of Points: ' + elm$core$String$fromInt(
-									elm$core$Array$length(model.path)))),
+								[mdgriffith$elm_ui$Element$Font$bold]),
+							_List_fromArray(
+								[
+									mdgriffith$elm_ui$Element$text(
+									'Number of Points: ' + elm$core$String$fromInt(
+										elm$core$Array$length(model.path)))
+								])),
 							A2(
-							mdgriffith$elm_ui$Element$el,
+							mdgriffith$elm_ui$Element$row,
 							_List_fromArray(
-								[mdgriffith$elm_ui$Element$centerX, mdgriffith$elm_ui$Element$Font$bold]),
-							mdgriffith$elm_ui$Element$text('Current Coordinates: ' + ('x: ' + (mouseX + (' y: ' + mouseY)))))
+								[
+									mdgriffith$elm_ui$Element$Font$bold,
+									mdgriffith$elm_ui$Element$height(
+									mdgriffith$elm_ui$Element$px(50))
+								]),
+							_List_fromArray(
+								[
+									mdgriffith$elm_ui$Element$text('Current Coordinates: '),
+									A2(
+									mdgriffith$elm_ui$Element$column,
+									_List_Nil,
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$text('x: ' + mouseX),
+											mdgriffith$elm_ui$Element$text('y: ' + mouseY)
+										]))
+								])),
+							A2(
+							mdgriffith$elm_ui$Element$row,
+							_List_fromArray(
+								[
+									mdgriffith$elm_ui$Element$centerX,
+									mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+									mdgriffith$elm_ui$Element$Font$bold
+								]),
+							_List_fromArray(
+								[
+									mdgriffith$elm_ui$Element$text('Symbol: ' + model.recognizedSymbol)
+								]))
 						])),
 					A2(
 					mdgriffith$elm_ui$Element$row,
@@ -13933,20 +13965,42 @@ var author$project$Main$view = function (model) {
 						]),
 					_List_fromArray(
 						[
-							A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, linesToDraw),
-							A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, smoothedLines),
-							A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, thinnedLines)
-						])),
-					A2(
-					mdgriffith$elm_ui$Element$paragraph,
-					_List_Nil,
-					_List_fromArray(
-						[
 							A2(
-							mdgriffith$elm_ui$Element$el,
+							mdgriffith$elm_ui$Element$column,
+							_List_Nil,
 							_List_fromArray(
-								[mdgriffith$elm_ui$Element$centerX, mdgriffith$elm_ui$Element$Font$bold]),
-							mdgriffith$elm_ui$Element$text('Symbol: ' + model.recognizedSymbol))
+								[
+									A2(
+									mdgriffith$elm_ui$Element$el,
+									_List_fromArray(
+										[mdgriffith$elm_ui$Element$centerX]),
+									mdgriffith$elm_ui$Element$text('Raw Input')),
+									A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, linesToDraw)
+								])),
+							A2(
+							mdgriffith$elm_ui$Element$column,
+							_List_Nil,
+							_List_fromArray(
+								[
+									A2(
+									mdgriffith$elm_ui$Element$el,
+									_List_fromArray(
+										[mdgriffith$elm_ui$Element$centerX]),
+									mdgriffith$elm_ui$Element$text('Smoothed Input')),
+									A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, smoothedLines)
+								])),
+							A2(
+							mdgriffith$elm_ui$Element$column,
+							_List_Nil,
+							_List_fromArray(
+								[
+									A2(
+									mdgriffith$elm_ui$Element$el,
+									_List_fromArray(
+										[mdgriffith$elm_ui$Element$centerX]),
+									mdgriffith$elm_ui$Element$text('Thinned Input')),
+									A4(author$project$Main$drawingBox, vBox, mouseX, mouseY, thinnedLines)
+								]))
 						]))
 				])));
 };
