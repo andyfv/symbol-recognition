@@ -57,7 +57,7 @@ the number of data-points."
 #### 4) Curvature
 
 This test assigned a *direction* to each point so the stroke/symbol can be represented by 
-a sequence of directions - eg. RIGHT, DOWN, RIGHT, DOWN which results in the number 3. 
+a sequence of directions - eg. UP, DOWN, UP, LEFT which results in the letter A. 
 
 "If the same direction occurs twice in succession, and it is not the same as the last 
 direction listed in the sequence, then it is added to the list; otherwise it is discarded." 
