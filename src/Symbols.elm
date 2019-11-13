@@ -40,8 +40,6 @@ recognizeSymbolUP symbol =
 
         [ UP, DOWN, UP, LEFT] -> "A"
 
---        [ UP, RIGHT, UP, RIGHT] -> "2"
-
         _ ->
             "Unknown"
 
@@ -293,6 +291,7 @@ recognizeSymbolDOWN symbol =
             "Unknown"
 
 
+-- #Symbols: D, X, 4
 rec_DRUL : Symbol -> String
 rec_DRUL symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -311,6 +310,7 @@ rec_DRUL symbol =
 
 
 
+-- #Symbols: K
 rec_DUDR : Symbol -> String
 rec_DUDR symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -322,6 +322,7 @@ rec_DUDR symbol =
             _ -> "Not recognized"
 
 
+-- #Symbols: K, W
 rec_DURD : Symbol -> String
 rec_DURD symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -332,6 +333,8 @@ rec_DURD symbol =
             [ DOWN, RIGHT ] -> "K"
             _ -> "Not recognized"
 
+
+-- #Symbols: H, K
 rec_DURU : Symbol -> String
 rec_DURU symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -354,6 +357,7 @@ rec_DURU symbol =
 
 
 
+-- #Symbols: K, U, W, 4
 rec_DRUD : Symbol -> String
 rec_DRUD symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -376,6 +380,8 @@ rec_DRUD symbol =
             _ -> "Not recognized"
 
 
+
+-- #Symbols: D, H, K, Y, W, X, 4
 rec_DRUR : Symbol -> String
 rec_DRUR symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -409,6 +415,8 @@ rec_DRUR symbol =
             _ -> "Not recognized"
 
 
+
+-- #Symbols: D, U, V
 rec_DRUE : Symbol -> String
 rec_DRUE symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -419,12 +427,12 @@ rec_DRUE symbol =
             (II, II) -> "D"
             (III, IV) -> "U"
             (II, I) -> "V"
---                case numberOfCorners of
---                    1 -> "V"
---                    0 -> "U"
---                    _ -> "Not recognized"
             _ -> "Not recognized"
 
+
+
+
+-- RIGHT
 
 
 recognizeSymbolRIGHT : Symbol -> String
@@ -453,6 +461,8 @@ recognizeSymbolRIGHT symbol =
             "Unknown"
 
 
+
+-- #Symbols: 2, 3
 rec_RURD : Symbol -> String
 rec_RURD symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -465,6 +475,7 @@ rec_RURD symbol =
             _ -> "Not recognized"
 
 
+-- #Symbols: Z, 2, 3
 rec_RDLR : Symbol -> String
 rec_RDLR symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -482,7 +493,7 @@ rec_RDLR symbol =
 
 
 
-
+-- #Symbols: Z, 3
 rec_RDLD : Symbol -> String
 rec_RDLD symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -524,6 +535,8 @@ recognizeSymbolLEFT symbol =
             "Unknown"
 
 
+
+-- #Symbols: E, S, T, 5, 8
 rec_LDRD : Symbol -> String
 rec_LDRD symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -549,7 +562,7 @@ rec_LDRD symbol =
 
 
 
-
+-- #Symbols: E, G, O, 5, 6, 9
 rec_LDRU : Symbol -> String
 rec_LDRU symbol =
     let quadrantStartToEnd = (symbol.startQuadrant, symbol.endQuadrant)
@@ -576,4 +589,3 @@ rec_LDRU symbol =
                     (I, IV) -> "G"
                     _ -> "Not recognized"
             _ -> "Not recognized"
-
