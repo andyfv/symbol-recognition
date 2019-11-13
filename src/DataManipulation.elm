@@ -1,4 +1,4 @@
-module DataManipulation exposing (conditioningDirections, detectCorners, getDirections, getStartAndEndPosition, recognizeSymbol, smoothing, thinning)
+module DataManipulation exposing (conditioningDirections, detectCorners, getDirections, getStartAndEndPosition, smoothing, thinning)
 
 -- Types
 
@@ -364,24 +364,6 @@ getPositionQuadrant ( x, y ) extremes =
 
     else
         I
-
-
-recognizeSymbol : Symbol -> String
-recognizeSymbol symbol =
-    let
-        firstDirection = fromMaybeDirection <| List.head symbol.mainDirections
-    in
-    case firstDirection of
-        DOWN -> recognizeSymbolDOWN symbol
-
-        UP -> recognizeSymbolUP symbol
-
-        LEFT -> recognizeSymbolLEFT symbol
-
-        RIGHT ->recognizeSymbolRIGHT symbol
-
-        _ ->
-            "Not Recognized"
 
 
 conditioningDirections : Array Direction -> Array Direction

@@ -1,13 +1,26 @@
-module Symbols exposing (recognizeSymbolDOWN, recognizeSymbolLEFT, recognizeSymbolRIGHT, recognizeSymbolUP)
+module Symbols exposing (recognizeSymbol)
 
 import Array exposing (toList)
 import Types exposing (..)
 
 
---symbolQuadrants =
---    { a = (III, III)
---    , b =
---    }
+recognizeSymbol : Symbol -> String
+recognizeSymbol symbol =
+    let
+        firstDirection = fromMaybeDirection <| List.head symbol.mainDirections
+    in
+    case firstDirection of
+        DOWN -> recognizeSymbolDOWN symbol
+
+        UP -> recognizeSymbolUP symbol
+
+        LEFT -> recognizeSymbolLEFT symbol
+
+        RIGHT ->recognizeSymbolRIGHT symbol
+
+        _ ->
+            "Not Recognized"
+
 
 
 -- UP

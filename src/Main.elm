@@ -1,19 +1,19 @@
 module Main exposing (main)
 
-import Array exposing (Array)
 import Browser
-import DataManipulation exposing (..)
-import Element exposing (..)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Font as Font
 import Html exposing (Html)
 import Html.Attributes as HtmlAttributes
-import Html.Events exposing (custom, on, onMouseDown, onMouseUp)
+import Html.Events as HtmlEvents
+import Array exposing (Array)
+import Element exposing (..)
+import Element.Background as Background
+import Element.Font as Font
 import Json.Decode as Json exposing (..)
-import Svg exposing (mpath, svg)
+import Svg as Svg
 import Svg.Attributes as SvgAttributes
 import Types exposing (..)
+import Symbols exposing (recognizeSymbol)
+import DataManipulation exposing (..)
 
 
 -- MAIN
@@ -306,9 +306,9 @@ drawingBox vBox mouseX mouseY linesToDraw =
             -- , Html.Events.on "mousemove" (Json.map UpdatePointerPosition offsetPosition)
             -- , Html.Events.on "mousedown" (Json.map DrawStart mouseCoord)
             -- , Html.Events.on "mouseup" (Json.map DrawEnd mouseCoord)
-            , Html.Events.onMouseDown DrawStart
-            , Html.Events.onMouseUp DrawEnd
-            , Html.Events.stopPropagationOn "mousemove" offsetPosition
+            , HtmlEvents.onMouseDown DrawStart
+            , HtmlEvents.onMouseUp DrawEnd
+            , HtmlEvents.stopPropagationOn "mousemove" offsetPosition
             ]
             [ Svg.rect
                 [ SvgAttributes.width <| String.fromInt canvasSize.width

@@ -5277,8 +5277,6 @@ var author$project$Types$fromMaybeNumber = function (number) {
 		return 0;
 	}
 };
-var elm$core$Debug$log = _Debug_log;
-var elm$core$Debug$toString = _Debug_toString;
 var elm$core$List$foldrHelper = F4(
 	function (fn, acc, ctr, ls) {
 		if (!ls.b) {
@@ -5408,12 +5406,84 @@ var author$project$DataManipulation$getStartAndEndPosition = function (thinnedIn
 	var extremes = {bottom: bottom, height: height, left: left, right: right, top: top, width: width};
 	var endPointQuadrant = A2(author$project$DataManipulation$getPositionQuadrant, endingPositon, extremes);
 	var startPointQuadrant = A2(author$project$DataManipulation$getPositionQuadrant, startingPositon, extremes);
-	return A2(
-		elm$core$Debug$log,
-		elm$core$Debug$toString(
-			_Utils_Tuple2(startPointQuadrant, endPointQuadrant)),
-		_Utils_Tuple2(startPointQuadrant, endPointQuadrant));
+	return _Utils_Tuple2(startPointQuadrant, endPointQuadrant);
 };
+var elm$core$Basics$round = _Basics_round;
+var elm$core$Tuple$mapBoth = F3(
+	function (funcA, funcB, _n0) {
+		var x = _n0.a;
+		var y = _n0.b;
+		return _Utils_Tuple2(
+			funcA(x),
+			funcB(y));
+	});
+var author$project$DataManipulation$smoothing = F4(
+	function (rawPoints, smoothedPoints, sf, newPoint) {
+		var numberOfSmoothedPoints = elm$core$Array$length(smoothedPoints);
+		if (numberOfSmoothedPoints >= 1) {
+			var previousSmoothedPoint = (numberOfSmoothedPoints === 1) ? author$project$Types$fromMaybePoint(
+				A2(elm$core$Array$get, 0, smoothedPoints)) : author$project$Types$fromMaybePoint(
+				A2(elm$core$Array$get, numberOfSmoothedPoints - 1, smoothedPoints));
+			var lastRawPoint = author$project$Types$fromMaybePoint(
+				A2(
+					elm$core$Array$get,
+					elm$core$Array$length(rawPoints) - 1,
+					rawPoints));
+			var _n0 = A3(elm$core$Tuple$mapBoth, elm$core$Basics$toFloat, elm$core$Basics$toFloat, previousSmoothedPoint);
+			var xSi_sub_1 = _n0.a;
+			var ySi_sub_1 = _n0.b;
+			var _n1 = A3(elm$core$Tuple$mapBoth, elm$core$Basics$toFloat, elm$core$Basics$toFloat, lastRawPoint);
+			var xRi = _n1.a;
+			var yRi = _n1.b;
+			var xSi = (sf * xSi_sub_1) + ((1 - sf) * xRi);
+			var ySi = (sf * ySi_sub_1) + ((1 - sf) * yRi);
+			return A2(
+				elm$core$Array$push,
+				A3(
+					elm$core$Tuple$mapBoth,
+					elm$core$Basics$round,
+					elm$core$Basics$round,
+					_Utils_Tuple2(xSi, ySi)),
+				smoothedPoints);
+		} else {
+			return A2(elm$core$Array$push, newPoint, smoothedPoints);
+		}
+	});
+var elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var author$project$DataManipulation$thinning = F3(
+	function (smoothedPoints, thinnedPoints, tf) {
+		var numberOfThinnedPoints = elm$core$Array$length(thinnedPoints);
+		var numberOfSmoothedPoints = elm$core$Array$length(smoothedPoints);
+		if (elm$core$Array$length(thinnedPoints) >= 1) {
+			var _n0 = author$project$Types$fromMaybePoint(
+				A2(elm$core$Array$get, numberOfThinnedPoints - 1, thinnedPoints));
+			var xTj_sub_1 = _n0.a;
+			var yTj_sub_1 = _n0.b;
+			var _n1 = author$project$Types$fromMaybePoint(
+				A2(elm$core$Array$get, numberOfSmoothedPoints - 1, smoothedPoints));
+			var xSi = _n1.a;
+			var ySi = _n1.b;
+			return ((_Utils_cmp(
+				elm$core$Basics$abs(xSi - xTj_sub_1),
+				tf) > -1) || (_Utils_cmp(
+				elm$core$Basics$abs(ySi - yTj_sub_1),
+				tf) > -1)) ? A2(
+				elm$core$Array$push,
+				_Utils_Tuple2(xSi, ySi),
+				thinnedPoints) : thinnedPoints;
+		} else {
+			return A2(
+				elm$core$Array$push,
+				author$project$Types$fromMaybePoint(
+					A2(elm$core$Array$get, numberOfSmoothedPoints - 1, smoothedPoints)),
+				thinnedPoints);
+		}
+	});
 var author$project$Symbols$rec_DRUD = function (symbol) {
 	var secondaryDirections = symbol.secondaryDirections;
 	var quadrantStartToEnd = _Utils_Tuple2(symbol.startQuadrant, symbol.endQuadrant);
@@ -7425,7 +7495,7 @@ var elm$core$List$head = function (list) {
 		return elm$core$Maybe$Nothing;
 	}
 };
-var author$project$DataManipulation$recognizeSymbol = function (symbol) {
+var author$project$Symbols$recognizeSymbol = function (symbol) {
 	var firstDirection = author$project$Types$fromMaybeDirection(
 		elm$core$List$head(symbol.mainDirections));
 	switch (firstDirection.$) {
@@ -7441,82 +7511,6 @@ var author$project$DataManipulation$recognizeSymbol = function (symbol) {
 			return 'Not Recognized';
 	}
 };
-var elm$core$Basics$round = _Basics_round;
-var elm$core$Tuple$mapBoth = F3(
-	function (funcA, funcB, _n0) {
-		var x = _n0.a;
-		var y = _n0.b;
-		return _Utils_Tuple2(
-			funcA(x),
-			funcB(y));
-	});
-var author$project$DataManipulation$smoothing = F4(
-	function (rawPoints, smoothedPoints, sf, newPoint) {
-		var numberOfSmoothedPoints = elm$core$Array$length(smoothedPoints);
-		if (numberOfSmoothedPoints >= 1) {
-			var previousSmoothedPoint = (numberOfSmoothedPoints === 1) ? author$project$Types$fromMaybePoint(
-				A2(elm$core$Array$get, 0, smoothedPoints)) : author$project$Types$fromMaybePoint(
-				A2(elm$core$Array$get, numberOfSmoothedPoints - 1, smoothedPoints));
-			var lastRawPoint = author$project$Types$fromMaybePoint(
-				A2(
-					elm$core$Array$get,
-					elm$core$Array$length(rawPoints) - 1,
-					rawPoints));
-			var _n0 = A3(elm$core$Tuple$mapBoth, elm$core$Basics$toFloat, elm$core$Basics$toFloat, previousSmoothedPoint);
-			var xSi_sub_1 = _n0.a;
-			var ySi_sub_1 = _n0.b;
-			var _n1 = A3(elm$core$Tuple$mapBoth, elm$core$Basics$toFloat, elm$core$Basics$toFloat, lastRawPoint);
-			var xRi = _n1.a;
-			var yRi = _n1.b;
-			var xSi = (sf * xSi_sub_1) + ((1 - sf) * xRi);
-			var ySi = (sf * ySi_sub_1) + ((1 - sf) * yRi);
-			return A2(
-				elm$core$Array$push,
-				A3(
-					elm$core$Tuple$mapBoth,
-					elm$core$Basics$round,
-					elm$core$Basics$round,
-					_Utils_Tuple2(xSi, ySi)),
-				smoothedPoints);
-		} else {
-			return A2(elm$core$Array$push, newPoint, smoothedPoints);
-		}
-	});
-var elm$core$Basics$negate = function (n) {
-	return -n;
-};
-var elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
-};
-var author$project$DataManipulation$thinning = F3(
-	function (smoothedPoints, thinnedPoints, tf) {
-		var numberOfThinnedPoints = elm$core$Array$length(thinnedPoints);
-		var numberOfSmoothedPoints = elm$core$Array$length(smoothedPoints);
-		if (elm$core$Array$length(thinnedPoints) >= 1) {
-			var _n0 = author$project$Types$fromMaybePoint(
-				A2(elm$core$Array$get, numberOfThinnedPoints - 1, thinnedPoints));
-			var xTj_sub_1 = _n0.a;
-			var yTj_sub_1 = _n0.b;
-			var _n1 = author$project$Types$fromMaybePoint(
-				A2(elm$core$Array$get, numberOfSmoothedPoints - 1, smoothedPoints));
-			var xSi = _n1.a;
-			var ySi = _n1.b;
-			return ((_Utils_cmp(
-				elm$core$Basics$abs(xSi - xTj_sub_1),
-				tf) > -1) || (_Utils_cmp(
-				elm$core$Basics$abs(ySi - yTj_sub_1),
-				tf) > -1)) ? A2(
-				elm$core$Array$push,
-				_Utils_Tuple2(xSi, ySi),
-				thinnedPoints) : thinnedPoints;
-		} else {
-			return A2(
-				elm$core$Array$push,
-				author$project$Types$fromMaybePoint(
-					A2(elm$core$Array$get, numberOfSmoothedPoints - 1, smoothedPoints)),
-				thinnedPoints);
-		}
-	});
 var elm$core$List$drop = F2(
 	function (n, list) {
 		drop:
@@ -7759,7 +7753,7 @@ var author$project$Main$update = F2(
 				var startQuadrant = _n2.a;
 				var endQuadrant = _n2.b;
 				var symbol = {corners: model.corners, endQuadrant: endQuadrant, mainDirections: mainDirections, secondaryDirections: secondaryDirection, startQuadrant: startQuadrant};
-				var recognizedSymbol = author$project$DataManipulation$recognizeSymbol(symbol);
+				var recognizedSymbol = author$project$Symbols$recognizeSymbol(symbol);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -13883,9 +13877,7 @@ var author$project$Main$view = function (model) {
 	var mouseY = elm$core$String$fromInt(model.pointerPosition.y);
 	var mouseX = elm$core$String$fromInt(model.pointerPosition.x);
 	var linesToDraw = author$project$Main$pathToSvg(model.path);
-	return A4(
-		elm$core$Debug$log,
-		elm$core$Debug$toString(model.directionsPath),
+	return A2(
 		mdgriffith$elm_ui$Element$layout,
 		_List_Nil,
 		A2(
