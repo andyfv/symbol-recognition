@@ -21,14 +21,14 @@ productive studies in HCI - The [GRAIL/BIOMOD system](https://www.youtube.com/wa
 The [text recognition scheme (_Real-Time Recognition of Handprinted Text_, 1966)](https://www.rand.org/pubs/research_memoranda/RM5016.html) was designed and implemented mainly by Garbriel F. Groner to permit an on-line computer user 
 to print text naturally and have it recognized accurately. The original scheme was able to recognize a set of
 53 symbols entered with the help of the RAND tablet with its pen as input device.
-Recognition of the symbols was done as analysis of the data in a time-sequence matter, 
+Recognition of the symbols was done as analysis of the data in a time-sequenced matter, 
 with a series of test to identify a specific symbol:
 
 <br>
 
 #### 1) Getting Raw Data
         
-Originaly, pressing the pen against the tablet  surface activated
+Originally, pressing the pen against the tablet  surface activated
 the symbol recognition scheme by indicating the start of a stroke.
 As the pen was moved data-points were added to the stroke. And finally 
 when the pen was lifted the recognition scheme was notified that the 
@@ -66,7 +66,7 @@ direction listed in the sequence, then it is added to the list; otherwise it is 
 #### 5) Corner Detection
 
 A corner is detected whenever the pen is moves in the same direction for at least 
-two segements, changes direction by at least 90°, and 
+two segments, changes direction by at least 90°, and 
 then proceeds along the new direction for at least two segments.
 
 #### 6) Additional features (Partially implemented, but not used yet)
@@ -98,7 +98,7 @@ On the page you will see three Boxes:
 * Thinned Input 
 
 Just draw/write a stroke in one of the boxes (it doesn't matter which one).
-Below is the table of the symbols and their one-stroke representation.
+Below is the table of the symbols and their single-stroke representation.
 
 ![Symbols](img/Symbol_Recognition_Table.png)
 
@@ -112,10 +112,10 @@ Below is the table of the symbols and their one-stroke representation.
 
 ## TODO
 
-There is a lot to be done: 
+There is much to be done: 
 
 * Fix issue in Firefox where the cursor is constantly jumping to top-left of the canvas  
-* The code is not taking full advantage of the Elm features - some shortcuts need to be fixed
+* The code is not taking full advantage of the Elm features - some "shortcuts" need to be fixed
 * Making the experience more interactive
 * Migrating from elm/svg to elm-vizualization
 * Add more symbols by implementing more recognition features
