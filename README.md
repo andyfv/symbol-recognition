@@ -7,6 +7,7 @@
 * [How to use it](#how-to-use-it)
 * [Dependencies](#dependencies)
 * [TODO](#todo)
+* [Issues](#issues)
 
 ## About
 
